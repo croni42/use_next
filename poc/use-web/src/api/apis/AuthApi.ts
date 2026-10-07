@@ -84,6 +84,43 @@ export class AuthApi extends runtime.BaseAPI {
     }
 
     /**
+     * Creates request options for getCurrentUser without sending the request
+     */
+    async getCurrentUserRequestOpts(): Promise<runtime.RequestOpts> {
+        const queryParameters: any = {};
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+
+        let urlPath = `/auth/me`;
+
+        return {
+            path: urlPath,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        };
+    }
+
+    /**
+     * Returns the user of the current session
+     */
+    async getCurrentUserRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<UserInfo>> {
+        const requestOptions = await this.getCurrentUserRequestOpts();
+        const response = await this.request(requestOptions, initOverrides);
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => UserInfoFromJSON(jsonValue));
+    }
+
+    /**
+     * Returns the user of the current session
+     */
+    async getCurrentUser(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<UserInfo> {
+        const response = await this.getCurrentUserRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
      * Creates request options for login without sending the request
      */
     async loginRequestOpts(requestParameters: LoginOperationRequest): Promise<runtime.RequestOpts> {

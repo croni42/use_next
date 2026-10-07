@@ -37,6 +37,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          description: Login failed (same response for unknown user and wrong password)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /auth/me:
+    get:
+      operationId: getCurrentUser
+      tags: [auth]
+      summary: Returns the user of the current session
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
         '401':
           $ref: '#/components/responses/Unauthorized'
   /auth/logout:
@@ -49,6 +73,8 @@ paths:
           description: Logged out
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /models/health:
     get:
       operationId: getModelsHealth
@@ -72,6 +98,18 @@ components:
       in: cookie
       name: JSESSIONID
   responses:
+    BadRequest:
+      description: Request body failed server-side validation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Missing or invalid CSRF token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Problem'
     Unauthorized:
       description: Not authenticated
       content:
@@ -93,9 +131,13 @@ components:
       properties:
         username:
           type: string
+          minLength: 1
+          maxLength: 64
         password:
           type: string
           format: password
+          minLength: 1
+          maxLength: 128
     UserInfo:
       type: object
       required: [username]
