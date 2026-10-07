@@ -26,8 +26,22 @@ structured target concept for a modern implementation.
 [//]: # (TODO update README on status change)
 
 **USE_NEXT** is currently in an analysis and design phase. At this stage, the repository primarily contains conceptual
-work, architectural documentation, and project guidelines rather than a finished implementation. Further technical
-decisions and implementation steps will be based on these documented foundations.
+work, architectural documentation, and project guidelines rather than a finished implementation. The central
+technology decisions are made. Implementation steps will be based on these documented foundations.
+
+## Technology Overview
+
+| Area             | Decision                                                                         |
+|------------------|----------------------------------------------------------------------------------|
+| Frontend         | React, TypeScript (strict), Vite                                                 |
+| Backend          | Java 21, Spring Boot 4.1.x (Spring MVC), Maven                                   |
+| Core integration | `use-core` in-process through a dedicated adapter package                        |
+| API contract     | OpenAPI (spec-first), OpenAPI Generator for TypeScript client and Spring server interfaces |
+| Authentication   | Server-side session with `HttpOnly`, `Secure`, `SameSite=Strict` cookie and CSRF token |
+| CI               | GitHub Actions, staged checks that can be run locally                            |
+
+Required toolchain: JDK 21 and Node.js (LTS). Details and rationale:
+[ADRs](documentation/architecture/9_architecture_decisions.md).
 
 # Documentation
 

@@ -13,7 +13,7 @@ architecture, but they cannot be completely eliminated.
 | Contract drift                                         | API changes may not be reflected consistently across all consumers                 | Using an OpenAPI-based contract and generated client code reduces this risk, but version mismatches and incomplete regeneration can still occur | The backend must maintain a stable and versioned API contract                     |
 | Incomplete or incorrect OpenAPI specification          | Generated client code is only as reliable as the specification behind it           | Careful review, testing and build-time validation are required                                                                                  | The backend must keep the OpenAPI definition complete and consistent              |
 | XSS through unsafe rendering of external or model data | Data from models, imports or backend responses may still contain malicious content | Escaping by default and controlled sanitisation reduce the risk, but unsafe DOM usage can still introduce problems                              | The backend should avoid returning unnecessary untrusted content where possible   |
-| CSRF or unintended state-changing requests             | Relevant if cookie-based sessions or similar authentication are introduced         | CSRF tokens, SameSite cookies, Origin/Referer checks and safe HTTP methods are required                                                         | The backend must enforce CSRF protection for relevant requests                    |
+| CSRF or unintended state-changing requests             | Relevant because cookie-based sessions are used (ADR-008)                          | CSRF tokens in a request header and `SameSite=Strict` cookies are used; an XSS in an active session can still send requests, so XSS rules apply | The backend must enforce CSRF protection for relevant requests                    |
 | Incorrect handling of authentication data              | Tokens or session identifiers may be stored or transmitted insecurely              | Secure storage, short lifetimes and avoiding URL-based transmission are necessary                                                               | The backend must define and enforce a secure authentication and session model     |
 | Dependency and supply-chain vulnerabilities            | Frontend frameworks and libraries can introduce security or maintenance risks      | Fixed versions, dependency reviews and vulnerability scans reduce but do not remove the risk                                                    | The backend and surrounding toolchain should follow the same dependency policy    |
 | Security misconfiguration in browser-related controls  | CSP, CORS and other browser-facing settings may be incomplete or inconsistent      | Baseline policies and automated checks help, but configuration errors remain possible                                                           | The backend must provide compatible and restrictive security headers and policies |
@@ -38,6 +38,8 @@ chosen architecture, because the frontend still depends on external data, backen
 | Backend-side validation gaps                   | The frontend can support validation, but it cannot enforce it reliably | Client-side checks improve usability, but the backend must remain authoritative               | The frontend must not rely on UI validation alone                       |
 | Authorisation bypass through direct API access | Users may call backend endpoints without using the UI                  | UI restrictions are only advisory. Authorisation must be enforced on the server               | The frontend must treat backend authorisation as the source of truth    |
 | Integration complexity around `use-core`       | The wrapper architecture introduces an additional integration layer    | An adapter reduces coupling, but technical integration issues may still occur                 | The frontend should not depend on internal core details                 |
+| `use-core` licence, sourcing and concurrency   | In-process use: licence header, how `use-core` is obtained and its behaviour under concurrent requests are not yet verified (ADR-009) | Verify and document before the first implementation PR; the adapter serialises access if required | The frontend should tolerate sequential or slower processing            |
+| Session in server memory                       | Sessions end on backend restart; no shared session store (ADR-008)     | Accepted for local operation; a shared session store is a later extension (FR-23)             | The frontend must handle 401 by returning to login                      |
 | Performance or responsiveness limitations      | Backend orchestration around `use-core` may affect response times      | Caching, batching and optimised orchestration can help, but will not remove all constraints   | The frontend should tolerate latency and present loading states clearly |
 | Inconsistent API evolution                     | Backend changes may affect generated clients and existing workflows    | Versioning and contract discipline reduce the risk, but coordination effort remains necessary | The frontend must be updated together with API contract changes         |
 
@@ -60,8 +62,14 @@ The main technical debt lies in the deliberate balance between a robust target a
 project. Not all security measures can be implemented to production standard, especially in areas such as monitoring,
 incident response and advanced hardening.
 
-A further source of technical debt is the dependency on generated API clients and a maintained OpenAPI contract. This
-improves consistency, but it also requires disciplined specification management and reliable build integration.
+A further source of technical debt is the dependency on generated API clients and server interfaces and a maintained
+OpenAPI contract. This improves consistency, but it also requires disciplined specification management and reliable
+build integration. A single tool (OpenAPI Generator) is used for both sides (ADR-010); a spike must confirm that the
+generated code compiles, is compatible with Spring Boot 4.x and can send the session cookie and CSRF header.
+
+The CI pipeline (ADR-011) and its pinned tools are themselves a dependency set that needs maintenance; pipeline runtime
+and effort are measured during the evaluation. Minimal user management and in-memory sessions are accepted debt for
+local operation.
 
 The modular architecture also depends on clear component boundaries, service abstractions and documentation. If
 these are not applied consistently during implementation, maintainability and security traceability will gradually

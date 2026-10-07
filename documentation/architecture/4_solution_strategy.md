@@ -11,9 +11,10 @@ controlled communication with backend APIs, robust handling of state-changing op
 and the deliberate management of dependencies.
 
 To strengthen interface stability between frontend and backend, the solution strategy also includes the use of an
-OpenAPI specification as the central API contract. Based on this specification, client code can be generated
-automatically and integrated into the frontend build and development workflow. This reduces manual inconsistencies
-between frontend and backend, improves maintainability and supports a more stable and traceable integration.
+OpenAPI specification as the central API contract (spec-first). Based on this specification, the TypeScript client
+and the Spring server interfaces are generated automatically with one tool (OpenAPI Generator) and integrated into the
+build and development workflow. This reduces manual inconsistencies between frontend and backend, improves
+maintainability and supports a more stable and traceable integration.
 
 > [Architecture overview — USE_NEXT](0_architecture_overview.md)
 
@@ -25,7 +26,10 @@ between frontend and backend, improves maintainability and supports a more stabl
 | Backend application as wrapper      | Defining the backend as a wrapper for `use-core` | `use-core` is accessed by the backend application through a dedicated integration layer. This keeps technical core access details out of the frontend.                               |
 | Maintainable frontend               | Modular, component-oriented target architecture  | UI components, a central service layer and clearly separated responsibilities for rendering, interaction, state handling and backend communication are introduced.                   |
 | Stable frontend-backend integration | Contract-first API definition with OpenAPI       | The API is described through an OpenAPI specification and used as the central contract between frontend and backend.                                                                 |
-| Reduced integration errors          | Automated client generation from API contract    | Frontend API client code, request/response models and type definitions are generated from the OpenAPI specification and regenerated when the API changes.                            |
+| Reduced integration errors          | Automated code generation from API contract      | The TypeScript client is generated from the OpenAPI specification and committed. Server interfaces are generated at build time. Both are regenerated when the API changes (ADR-006, ADR-010). |
+| Frontend technology                 | React and TypeScript (strict), Vite as build tool | Application state uses React's built-in mechanisms first. Additional state or UI libraries require a documented reason. Unsafe DOM sinks are flagged by ESLint (ADR-007).          |
+| Backend technology                  | Java 21, Spring Boot 4.1.x (Spring MVC), Maven   | `use-core` is integrated in-process through one adapter package, the only place that imports `org.tzi.use.*`. An architecture test enforces this boundary (ADR-009).               |
+| Early and repeatable quality checks | Staged CI on GitHub Actions                      | Stage 1 checks are mandatory before merge and runnable locally with one command (JDK 21, Node.js LTS, Maven Wrapper, npm; no Docker, accounts or API keys). Stage 2 is optional (ADR-011). |
 
 ## Security Decisions
 
@@ -34,13 +38,13 @@ between frontend and backend, improves maintainability and supports a more stabl
 | Protection against XSS                  | Secure default rendering rules instead of unrestricted HTML injection | Untrusted data is rendered escaped by default. Unsafe DOM sinks such as `innerHTML` are avoided or only used in a controlled manner with sanitization.                                   |
 | Handling of HTML content                | Centralized sanitization instead of distributed ad hoc logic          | If HTML is required for functional reasons, sanitization is performed via a dedicated component, not directly within individual views.                                                   |
 | Secure API integration                  | Unified API client and defined request pathways                       | Backend calls are routed through central services or generated API clients to ensure consistent headers, error handling and authentication handling.                                     |
-| Protection of state-changing operations | CSRF-aware request strategy                                           | For cookie-based authentication, SameSite policies, token mechanisms, Origin/Referer validation and secure use of HTTP methods are considered.                                           |
-| Secure session handling                 | Conservative handling of sessions and tokens                          | Session data is not transmitted via URLs. Sensitive session information is protected through secure browser mechanisms, HTTPS and clearly defined timeout policies.                      |
+| Protection of state-changing operations | CSRF tokens plus SameSite cookie                                      | State-changing requests require a CSRF token provided by the backend (Spring Security) and sent by the communication layer in a request header. The session cookie uses `SameSite=Strict` (ADR-008). |
+| Secure session handling                 | Server-side session with session cookie                               | The session cookie is `HttpOnly`, `Secure` and `SameSite=Strict`. The session ID is regenerated on login, sessions expire after 30 minutes of inactivity and logout invalidates the session on the server. Session data is never transmitted via URLs and never handled by frontend code (ADR-008). |
 | Avoidance of misconfigurations          | Security by default for browser and server integration                | Restrictive CSP, controlled external sources, strict CORS configuration and avoidance of unnecessary inline scripts are applied.                                                         |
 | Protection against UI-based attacks     | Safeguards against embedding and deceptive interaction                | Clickjacking protection and deliberate design of sensitive interactions are used as complementary safeguards.                                                                            |
-| Control of external libraries           | Reduced and controlled dependency usage                               | Only necessary libraries, fixed versions, regular vulnerability checks and documented approval of new dependencies are required.                                                         |
-| Early detection of security issues      | Automated checks in the development process                           | PR checks, linting, dependency scans and validation of security headers and relevant configuration are integrated into CI/CD pipelines.                                                  |
-| Definition of authentication method     | OpenAPI security scheme as central API contract                       | The authentication method, such as bearer token or cookie-based session handling, is defined in the OpenAPI specification and used as the authoritative source for frontend and backend. |
+| Control of external libraries           | Reduced and controlled dependency usage                               | Only necessary libraries, fixed versions and lockfiles, OSV-Scanner on `pom.xml` and `package-lock.json`, gitleaks for secrets and documented approval of new dependencies are required. CI actions are pinned to a commit SHA. |
+| Early detection of security issues      | Automated checks in the development process                           | Stage 1 of the CI model (ADR-011): Spectral (OpenAPI, `apiKey` only in cookies), client drift check, ESLint security rules, integration tests for security headers, session and CSRF behaviour, architecture test, oasdiff, OSV-Scanner and gitleaks. |
+| Definition of authentication method     | OpenAPI security scheme as central API contract                       | The cookie-based session is defined in the OpenAPI specification as an `apiKey` security scheme located in a cookie and referenced by all protected operations. The CSRF header is documented there. An `apiKey` in query parameters is not allowed (ADR-008). |
 
 ## Scope
 

@@ -72,7 +72,7 @@ the target architecture.
   - Tooling dependency (OpenAPI Generator, see ADR-010) is part of the build pipeline.
 
 [//]: # (TODO update references to FR or BR)
-[//]: # (TOOD fix semicolons used by ai, maybe also shorten ADRs)
+[//]: # (TODO fix semicolons used by ai, maybe also shorten ADRs)
 ## ADR-007: Frontend Framework
 
 - **Status:** Accepted

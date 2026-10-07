@@ -16,7 +16,9 @@ and even compromise of session data. This risk is particularly relevant when dyn
 structures or when unsafe DOM manipulations are permitted. Countermeasures in the frontend primarily consist of
 consistent escaping and the avoidance of insecure HTML rendering. Modern browsers additionally support Trusted Types
 as an enforcement layer. Restricting which values may be passed to unsafe DOM sinks and thereby preventing entire
-classes of DOM-based XSS at the platform level. At the same time, a dependency on the backend remains, as incoming
+classes of DOM-based XSS at the platform level. React escapes values rendered through JSX by default and
+`dangerouslySetInnerHTML` is the single explicit unsafe sink, which ESLint rules ban or centralise (ADR-007). At the
+same time, a dependency on the backend remains, as incoming
 data must also be validated and securely prepared there.
 
 > Prevention: [S7](../references.md#s7), [S9](../references.md#s9), [S10](../references.md#s10), [S11](../references.md#s11)
@@ -85,6 +87,11 @@ application source code. insufficiently hardened CI/CD pipelines can be manipula
 A deliberate dependency strategy with lockfile discipline, a minimal dependency footprint, automated vulnerability
 checks, and hardened pipeline configurations reduces this risk but cannot eliminate it entirely.
 
+In the chosen toolchain (ADR-011) this is addressed by lockfiles and fixed versions, OSV-Scanner for `pom.xml` and
+`package-lock.json`, gitleaks, SHA-pinned GitHub Actions with minimal permissions, and a pinned OpenAPI Generator
+version. The generated client is committed and its drift is checked in CI, so unreviewed generator output cannot enter
+the code base silently.
+
 > Prevention: [S12](../references.md#s12), [S32](../references.md#s32), [S33](../references.md#s33)
 >
 > Other References: [S1](../references.md#s1), [S4](../references.md#s4), [S21](../references.md#s21), [S22](../references.md#s22), [S26](../references.md#s26), [S36](../references.md#s36) 
@@ -105,7 +112,9 @@ policy. Overly permissive CORS configuration allows unintended cross-origin acce
 misconfigured server header into an attack vector regardless of how secure the frontend code itself is.
 
 A restrictive default configuration must be defined from the outset, deliberately reviewed as part of deployment,
-and validated automatically in CI/CD pipelines.
+and validated automatically in CI/CD pipelines. Backend integration tests verify the security headers against the
+production build (BR-13). If frontend and backend run on different origins, CORS is configured with credentials and a
+fixed allowed origin, never a wildcard (ADR-008).
 
 > Prevention: [S3](../references.md#s3), [S33](../references.md#s33), [S40](/documentation/references.md#s40)
 >
@@ -120,9 +129,15 @@ them to leakage through browser history, server logs, and Referer headers. Missi
 (Secure, HttpOnly, SameSite) leave tokens vulnerable to interception. Absent or overly generous timeout policies
 extend the window of exposure for compromised sessions.
 
-These risks are particularly relevant once cookie-based authentication is introduced (ADR-008
-see [ADRs](../architecture/9_architecture_decisions.md)). The session model must be defined in the OpenAPI security 
-scheme to ensure a consistent and auditable contract between frontend and backend.
+These risks are relevant because cookie-based authentication is used (ADR-008
+see [ADRs](../architecture/9_architecture_decisions.md)). The session model is defined in the OpenAPI security
+scheme (`apiKey` in a cookie, never in query parameters) to ensure a consistent and auditable contract between
+frontend and backend.
+
+Mitigation in the chosen model: the session cookie is `HttpOnly`, `Secure` and `SameSite=Strict`, the session ID is
+regenerated on login, sessions expire after 30 minutes of inactivity and logout invalidates the session on the server.
+`HttpOnly` prevents theft of the session identifier through XSS, but not the use of the session by an XSS during an
+active session. Sessions held in server memory end on backend restart.
 
 > Prevention: [S34](../references.md#s34), [S35](../references.md#s35)
 >
@@ -140,8 +155,10 @@ CSRF is not an XSS attack and is not mitigated by output encoding. It requires d
 request layer.
 
 Effective mitigations include the SameSite cookie attribute (Lax or Strict), synchronizer token patterns, and
-Origin/Referer header validation for state-changing requests. The chosen approach must align with the session model
-defined in the OpenAPI security scheme (ADR-008).
+Origin/Referer header validation for state-changing requests. The chosen approach aligns with the session model
+defined in the OpenAPI security scheme (ADR-008): `SameSite=Strict` on the session cookie plus a CSRF token provided
+by the backend (Spring Security) and sent by the frontend communication layer in a request header. CSRF protection is
+mandatory and covered by integration tests (BR-09).
 
 > Prevention: [S20](../references.md#s20)
 >
