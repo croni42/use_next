@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
 // The browser only talks to the Vite origin; /api is proxied to use-back. Same origin keeps the
@@ -6,6 +6,9 @@ import react from '@vitejs/plugin-react';
 // on http://localhost (a "potentially trustworthy" origin).
 export default defineConfig({
   plugins: [react()],
+  test: {
+    environment: 'jsdom',
+  },
   server: {
     proxy: {
       '/api': 'http://localhost:8080',
