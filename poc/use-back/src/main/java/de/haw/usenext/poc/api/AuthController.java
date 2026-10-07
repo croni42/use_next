@@ -60,6 +60,12 @@ public class AuthController implements AuthApi {
     }
 
     @Override
+    public ResponseEntity<UserInfo> getCurrentUser() {
+        // The filter chain only lets authenticated requests through, so the authentication is present here.
+        return ResponseEntity.ok(new UserInfo(contextHolder.getContext().getAuthentication().getName()));
+    }
+
+    @Override
     public ResponseEntity<Void> logout() {
         new SecurityContextLogoutHandler().logout(request, response, contextHolder.getContext().getAuthentication());
         return ResponseEntity.noContent().build();
