@@ -6,7 +6,23 @@ additional functionality where required.
 
 > [Architecture overview — USE_NEXT](0_architecture_overview.md)
 
-![context_new.drawio.png](c4/context_new.drawio.png)
+```mermaid
+C4Context
+    title System Context diagram for USE_NEXT
+
+    Person(modeler, "Modeler / Analyst", "Specifies, analyses and validates UML/OCL models")
+    System(useNext, "USE_NEXT", "Web-based tool for UML/OCL model specification, analysis and validation")
+    System_Ext(useCore, "use-core", "Existing USE domain core: model processing, OCL evaluation, validation. Reused unchanged (ADR-001)")
+    System_Ext(usePlugins, "USE Plugin(s)", "Optional extensions providing additional USE functionality")
+
+    Rel(modeler, useNext, "Uses", "Browser, HTTPS")
+    Rel(useNext, useCore, "Delegates model processing to", "in-process Java adapter")
+    Rel(usePlugins, useCore, "Registers with", "PluginRuntime")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")
+```
+
+[//]: # (Previous version: c4/context_new.drawio.png, kept until the code-based diagram is accepted)
 
 ## 3.1 Domain Context
 
