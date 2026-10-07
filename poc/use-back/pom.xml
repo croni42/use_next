@@ -17,6 +17,8 @@
 		<java.version>21</java.version>
 		<openapi-generator.version>7.26.0</openapi-generator.version>
 		<use-core.version>7.5.0</use-core.version>
+		<!-- spring-boot:run activates the dev profile (dev-only password hash); tests and packaging are unaffected -->
+		<spring-boot.run.profiles>dev</spring-boot.run.profiles>
 	</properties>
 	<dependencies>
 		<dependency>
