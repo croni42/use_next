@@ -58,187 +58,172 @@ the target architecture.
 ## ADR-006: OpenAPI-Based Code Generation for API Stability
 
 - **Status:** Accepted
-- **Decision:** The system will use an OpenAPI specification [(S38)](/documentation/references.md#s38) as the single 
-  source of truth for REST API definitions, and client code will be automatically generated from this specification.
+- **Decision:** The system will use an OpenAPI specification [(S38)](/documentation/references.md#s38) as the single
+  source of truth for REST API definitions. Client code **and server interfaces** are automatically generated from this
+  specification (spec-first; scope and tooling defined in ADR-010).
 - **Rationale:** OpenAPI provides a standardised, language-neutral representation of REST APIs. Automatic code
   generation ensures that frontend API clients stay synchronised with backend changes, reduces manual implementation
   errors, and increases overall system stability.
 - **Consequences:**
-    - The OpenAPI specification must be maintained as the authoritative API contract.
-    - Generated client code (models, API methods, types) is used in the frontend instead of manually written API
-      clients.
-    - Changes to the API require updating the OpenAPI spec and regenerating the client, not rewriting frontend API
-      logic.
-    - Tooling dependency (e.g., OpenAPI Generator) is introduced and must be integrated into the build pipeline.
+  - The OpenAPI specification must be maintained as the authoritative API contract.
+  - Generated client code (models, API methods, types) is used in the frontend instead of manually written API
+    clients. Backend controllers implement the generated interfaces.
+  - Changes to the API require updating the OpenAPI spec and regenerating the code, not rewriting API logic by hand.
+  - Tooling dependency (OpenAPI Generator, see ADR-010) is part of the build pipeline.
 
+[//]: # (TODO update references to FR or BR)
+[//]: # (TOOD fix semicolons used by ai, maybe also shorten ADRs)
 ## ADR-007: Frontend Framework
 
-- **Status:** Proposed (draft, replaces Open once accepted)
-- **Context:** arc42 chapter 2 requires freely available, long-term maintainable frontend technologies (2.1), a
-  widely used and well-documented technology base (2.2), desktop browsers only (Firefox, Chrome, Edge) and local
-  execution. ADR-004 already fixes a modular, component-oriented architecture. FR-14/FR-15 require safe-by-default
-  rendering and no unsafe DOM injection.
-- **Options considered:**
-  - **A – React + TypeScript:**  Very widely used and well documented, large ecosystem for the generated-client and
-    lint tooling in ADR-010/011. Cons: React is a library, not a full framework – routing, state and build tooling
-    must be chosen explicitly (more decisions, more dependencies; see FR-21).
-  - **B – Angular:** It would bring more built-in structure at the cost of a
-    steeper learning curve and fewer dependency choices.
-- **Decision:** Option A - React & TypeScript
-- **Rationale:** This library is the most used Web library as seen on the [StackOverflowSurvey](../references.md#s41)
-  For an open source research project this would be the best choice.
+- **Status:** Accepted
+- **Decision:** The frontend is implemented with **React and TypeScript** (strict mode). Vite is used as build tool.
+  Application state is handled with React's built-in mechanisms first; additional state-management or UI libraries are
+  introduced only with a documented reason (see FR-21).
+- **Rationale:** React is MIT-licensed and widely used and documented [(S-react)](https://react.dev/versions), which
+  matches the constraints of free availability, long-term maintainability and a low entry barrier for third parties
+  (arc42 chapter 2). It supports the component-oriented architecture of ADR-004. React escapes values rendered through
+  JSX by default, which supports FR-14; `dangerouslySetInnerHTML` is the single explicit unsafe sink and can be banned or
+  centralised by lint rules (FR-15, FR-16).
+- React is MIT-licensed and widely used ([StackOverflowSurvey](/documentation/references.md#s41)) and 
+  documented [(react.dev)](https://react.dev), which matches the constraints of free availability, long-term 
+  maintainability and a low entry barrier for third parties (arc42 chapter 2). It supports the component-oriented 
+  architecture of [ADR-004](#adr-004-modular-frontend-architecture). React escapes values rendered through
+  JSX by default, which supports FR-14. `dangerouslySetInnerHTML` is the single explicit unsafe sink and can be 
+  banned or centralised by lint rules(FR-15, FR-16). Alternatives (e.g. Vue, Angular, Svelte) are present and  
+  considered, but for an open source project the wide usage of a library is mandatory.
 - **Consequences:**
-  - The dev server differs from the production build (e.g. HMR/inline scripts) – header and CSP checks must
-    run against the production build, not the dev server.
-  - Frontend needs Node.js (LTS) in the toolchain. With ADR-009 the project has two toolchains (JDK + Node).
-  - Closes the TODO "update guidelines after technologies have been defined" in `frontend_guidelines.md`.
-- **Affected documents:** `9_architecture_decisions.md`, arc42 ch. 4 (solution strategy) and ch. 5,
-  `frontend_guidelines.md`, `FRONTEND.md`, README (status/tech stack)
-
-## ADR-008: Authentication and Session Concept (decision OPEN)
-
-- **Status:** Open
-- **Decision:** The system uses a deliberately simple yet extensible authentication and session concept. The
-  authentication method is defined centrally via OpenAPI security schemes and documented as part of the API contract.
-- **Rationale:** The system will initially be operated locally, so complex identity management is not a primary concern.
-  At the same time, the architecture should remain extensible for later additions such as login, roles, secure sessions,
-  or token-based authentication. Defining the authentication method in the OpenAPI specification creates a consistent
-  contract between frontend and backend and improves traceability of security-related interface decisions.
-- **Consequences:** Session data will not be transmitted via URLs. If cookie-based sessions are introduced later, secure
-  cookie attributes, clear lifetimes, and appropriate protective measures must be taken into account. Any authentication
-  or session concept must be defined in the OpenAPI security scheme during implementation.
+  - The toolchain requires Node.js (LTS) in addition to the JDK (ADR-009).
+  - ESLint with TypeScript and React rules is part of the mandatory checks (ADR-011). Unsafe DOM sinks are flagged.
+  - The dev server differs from the production build. Header and CSP checks (BR-13) run against the production build.
+  - Routing, test runner and further libraries are chosen during implementation and documented in the PR that
+    introduces them (fixed versions, licence check; FR-21).
+  - The TODO "update guidelines after technologies have been defined" in the frontend documents is resolved.
 
 
-## ADR-008: Authentication and Session Concept (decision OPEN)
+## ADR-008: Authentication and Session Concept
 
-- **Status:** Proposed (draft)
-- **Context:** The existing ADR-008 text is deliberately simple and extensible; the method must be defined 
-  centrally in the OpenAPI security scheme (BR-08, FR-18), session data must not be sent via URLs (BR-10, FR-17), 
-  and token handling needs defined lifetime and invalidation (BR-11).  The system runs locally first (arc42 2.1). 
-  **Lasse decided (D-08): token-based authentication, implemented directly in the main project.** Earlier, Claude had recommended cookie sessions; that recommendation is **not followed** – this draft works out the token-based design and its consequences.
-- **Options considered (all token-based unless stated):**
-  - **A – Short-lived bearer token (JWT), kept only in JavaScript memory, sent in the `Authorization` header; no refresh in the prototype (re-login after page reload).** OWASP advises against putting session identifiers in `localStorage` because any XSS can read them [belegt]; memory-only storage avoids persistence but is not XSS-proof either (an XSS can still use the token while the page is open). Bearer-header authentication is not subject to classic CSRF because browsers do not attach the header automatically [belegt, OWASP CSRF Cheat Sheet: custom request headers]. Pros: simplest, no cookies, no CSRF machinery, fits "local first". Cons: reload logs the user out; XSS during a session still compromises the token.
-  - **B – Option A plus refresh token in an `HttpOnly`, `Secure`, `SameSite=Strict` cookie** (silent re-login after reload). Pros: better UX, token never in persistent JS storage. Cons: reintroduces cookies, so **BR-09 (CSRF) applies to the refresh/logout endpoints** and cookie attributes/lifetimes must be specified; more code and tests (largest time risk in AP-03).
-  - **C – Access token in `sessionStorage`/`localStorage`.** Simplest persistence, but contradicts the OWASP storage advice above [belegt] and the XSS-focused risk posture of FR-14/FR-15. **Not recommended.**
-  - **D – Cookie-only session (server-side session, no tokens).** Claude's earlier recommendation; **outside Lasse's decision D-08**, listed only so the deviation is explicit. CSRF protection (BR-09) mandatory.
-  - **E – Full OAuth 2.0/OIDC with Spring Authorization Server.** Documented by Spring as the recommended way to *issue* tokens [belegt]; far more setup than the local-first scope needs. Possible later extension (FR-23).
-- **Token format and issuing (applies to A/B):**
-  - Spring Security's JWT resource server **validates** tokens (signature, `exp`, `nbf`, issuer) but **does not issue** them [belegt]. Issuing needs Spring Authorization Server (option E) or the lower-level Nimbus `JwtEncoder` [belegt].
-  - For a single application that issues and validates its own tokens, an HS256 shared secret is supported [belegt]; the secret must come from environment/config and **never** be committed (secrets scan, ADR-011). Asymmetric keys (RS256) are possible but add key handling [Annahme: unnecessary for local use].
-  - **Opaque random tokens with a server-side store** are an alternative to JWT that makes invalidation (BR-11) trivial, but Spring Security would need custom filter code or an introspection endpoint [Annahme]; not recommended for the time box.
-  - JWTs cannot be revoked by themselves. BR-11 requires "appropriate lifetimes and invalidation behaviour" → short lifetime (e.g. 10–15 minutes [Vorschlag]) plus an in-memory deny-list of token IDs (`jti`) on logout [Vorschlag].
-- **CSRF decision (BR-09):** BR-09 only applies "where cookie-based or comparable session mechanisms are used". With option A the backend may disable Spring's CSRF filter for the stateless API; this **must be documented as a conscious exception with this ADR as justification** (guidelines chapter 3: deviations are described in the PR). With option B CSRF protection stays on for cookie-authenticated endpoints.
-- **Passwords/users:** For the prototype one configured user with a hashed password (Spring `PasswordEncoder`) is sufficient [Vorschlag]; no registration, no user database (see open question R-17).
-- **Cross-origin development:** If the Vite dev server and the backend run on different origins, CORS must be configured explicitly (BR-13); alternatively use the dev server proxy [Annahme]. CORS is no frontend protection measure (security.md).
-- **Recommendation (non-binding):** **Option A for the prototype** (memory-only access token, short lifetime, `jti` deny-list on logout, JWT issued with Nimbus `JwtEncoder`, validated by Spring's resource server), with **option B documented as the planned extension** if re-login after reload turns out to be unacceptable in the demo. Rationale: smallest attack surface and least code within the 6-hour-block capacity (AP-03 is the main time risk), and it satisfies BR-08/BR-10/BR-11.
-- **Decision:** _to be filled by Lasse_
-- **Rationale:** _(on acceptance)_
+- **Status:** Accepted
+- **Decision:** The system uses a server-side session identified by a session cookie.
+  - After login (a login operation defined in the OpenAPI specification) the backend creates a server-side session
+    and sets a session cookie with the attributes `HttpOnly`, `Secure` and `SameSite=Strict`. The session ID is
+    regenerated on login. Session identifiers are never handled by frontend code and never transmitted via URLs
+    (FR-17, BR-10).
+  - Sessions expire after 30 minutes of inactivity (configurable). Logout invalidates the session on the server
+    (BR-11).
+  - State-changing requests are protected by CSRF tokens (BR-09): the backend provides the token, the communication
+    layer of the frontend sends it in a request header.
+  - The method is defined in the OpenAPI specification as an `apiKey` security scheme located in a cookie, referenced
+    by all protected operations; the required CSRF header is documented in the specification (BR-08, FR-18). An
+    `apiKey` in query parameters is not allowed.
+  - Spring Security's session management and CSRF protection are used; sessions are held in server memory (local
+    operation).
+- **Rationale:** An `HttpOnly` session cookie cannot be read by JavaScript, so the session identifier is not exposed to
+  theft through XSS. A server-side session makes lifetime control and invalidation simple and needs no token issuing
+  code. The approach matches the security documentation (secure cookies with suitable attributes, CSRF protection for
+  cookie-based authentication) and keeps the concept simple and extensible.
 - **Consequences:**
-  - The OpenAPI spec defines `securitySchemes` with HTTP bearer (JWT) and references it from protected operations; **no `apiKey` in query** (BR-10, FR-17).
-  - Frontend: one place in the communication layer attaches the header (FR-03, FR-18); token never logged, never in URLs.
-  - Backend: security headers (CSP, frame protection, HSTS where applicable) are mandatory (BR-13); error responses stay minimal (BR-12).
-  - Tests: unauthenticated access → 401, expired token rejected, logged-out token rejected, token in query ignored (BR-07/BR-10/BR-11).
-  - Residual risk: XSS during an active session can still use the in-memory token – mitigated by FR-14 to FR-16, CSP and Trusted Types, not eliminated.
-- **Affected documents:** `9_architecture_decisions.md` (ADR-008), `security.md` (auth/session/token section), `backend_guidelines.md` §4/§5, `frontend_guidelines.md`, arc42 ch. 4 and ch. 11 (risks), `05` (BR-08 to BR-11, FR-17/FR-18).
----
+  - CSRF protection is mandatory and tested (BR-09).
+  - The generated client sends the session cookie and the CSRF header; this is configured once in the communication
+    layer (FR-03, FR-13).
+  - If frontend and backend run on different origins in development, the dev-server proxy is used so both share one
+    origin; otherwise CORS is configured explicitly with credentials and a fixed allowed origin, never a wildcard
+    (BR-13).
+  - An XSS during an active session can still send requests within that session, although it cannot read the cookie;
+    this residual risk is reduced by FR-14 to FR-16, a restrictive CSP and Trusted Types.
+  - The `Secure` attribute is required whenever the application is served over HTTPS; its handling for local
+    development over plain HTTP is documented in the implementation.
+  - Sessions in server memory end on backend restart; a shared session store is a later extension (FR-23).
+  - Tests cover: unauthenticated access returns 401; expired and invalidated sessions are rejected; a state-changing
+    request without a valid CSRF token is rejected; cookie attributes are set; the session ID changes on login.
+  - User management is minimal (a configured user with a hashed password, no registration); a user database is a
+    later extension (FR-23).
+  - Token-based authentication (bearer token) was considered and not chosen; introducing it later requires an update
+    of this ADR.
 
-## ADR-009 (provisional): Backend Language, Framework and Integration of `use-core` (decision OPEN)
+## ADR-009: Backend Language, Framework and Integration of `use-core`
 
-- **Status:** Proposed (draft)
-- **Context:** ADR-001 to ADR-003 fix reuse of `use-core` behind a backend wrapper. `use-core` is Java, built with 
-  Maven, targets Java 21.
-- **Options considered:**
-  - **A – 
-- **Decision:** Java 21 + Spring Boot 4.1.x (Spring MVC), Maven.** Spring Boot 4.1 released 2026-06-30, OSS support until  
-  2027-07-31, supports Java 17–26.  Same language/build tool as `use-core` (Maven) → straightforward
-  in-process dependency.  
-- **Rationale:** _(on acceptance)_
+- **Status:** Accepted
+- **Decision:** The backend (`use-back`) is implemented in Java 21 with Spring Boot 4.1.x (Spring MVC) and built with
+  Maven (Maven Wrapper). `use-core` is integrated in-process through a dedicated adapter package, which is the only
+  place that imports `org.tzi.use.*` (BR-02).
+- **Rationale:** `use-core` is a Java project built with Maven (Java 21), so the same language and build tool allow a
+  direct in-process dependency (ADR-001, ADR-003). Spring Boot 4.1 is supported as open source until 2027-07-31.
+  Spring MVC fits the synchronous nature of `use-core`; Spring Security and Bean Validation cover authentication
+  (ADR-008), validation (BR-06) and error handling (BR-12).
 - **Consequences:**
-  - `use-back` contains an **adapter package** that is the only place importing `org.tzi.use.*`  (BR-02). An 
-    architecture test (e.g. ArchUnit [Annahme, verify license]) can enforce this automatically (matrix row BR-02).
-  - **Open technical questions (R-18), to answer before AP-02:** (1) how `use-core` is obtained  – Maven 
-    Central/other registry, or built from source (`mvn install` of the `use` repo, Git submodule)
-    [not verified];  (2) license headers of all used `use-core` files (see findings above); (3)  thread-safety/state 
-    handling of `use-core` objects when used by concurrent HTTP requests [not verified] – the adapter  may have to 
-    serialize access.
-  - Security headers, validation (BR-06), authorization (BR-07) and error handling (BR-12)  are implemented with 
-    Spring Security / Bean Validation.
-  - Cons: Boot 4 is a new major line (2025-11) – third-party libraries and generators may
-    lag; the OpenAPI  Generator offers a `useSpringBoot4` option (default `false`) [belegt], but real
-    compatibility of the generated code must be proven in a short spike (AP-02).
-- **Affected documents:** `9_architecture_decisions.md`,  arc42 ch. 4/5, `backend_guidelines.md` (TODO technologies),
-  `BACKEND.md`, README, `05` (BR-01, BR-02, BR-06, BR-12, BR-13).
----
+  - Before the first implementation PR it is verified and documented that the used `use-core` files carry a licence
+    header compatible with GPLv3, how `use-core` is obtained (published artefact or build from source), and how its
+    objects behave under concurrent requests (the adapter serialises access if required).
+  - An architecture test enforces the adapter boundary (BR-02).
+  - The generated server interfaces (ADR-010) must be compatible with Spring Boot 4.x; a deviation from the chosen
+    Spring Boot line requires an update of this ADR.
+  - Return values and errors of `use-core` are mapped to backend models and defined error codes.
 
-## ADR-010 (provisional): OpenAPI Code Generation – Scope and Generator (extends ADR-006) (decision OPEN)
+## ADR-010: OpenAPI Code Generation – Scope and Generator
 
-- **Status:** Proposed (draft). **Amends ADR-006**, which so far only generates the *client* (see V-04); with D-11 the scope becomes spec-first generation of **client and server interfaces**.
-- **Context:** The OpenAPI spec is the single source of truth (ADR-006, FR-10, BR-03, BR-04); contract changes must be reflected systematically (FR-12) and a CI consistency check is required (guidelines ch. 4). Constraints: freely available, GPLv3-compatible, locally runnable, maintainable.
-- **Options considered:**
-  - **A – OpenAPI Generator for both sides:** generator `spring` with `interfaceOnly` for server interfaces (options `interfaceOnly`, `delegatePattern`, `useBeanValidation`, `useSpringBoot4` exist [belegt]) and `typescript-fetch` or `typescript-axios` for the client [belegt]. Apache-2.0 [belegt]; current release 7.25.0 per GitHub [belegt – the two fetches disagreed on the year (2024 vs. 2026); **verify version and date before pinning**]. One tool, one config style, no extra runtime for server code. Cons: TypeScript output quality and style compared with TS-native generators [Annahme, to be judged in the spike]; Java-based tool is run for the client too (JDK is present anyway).
-  - **B – OpenAPI Generator (server interfaces) + Hey API `@hey-api/openapi-ts` (TypeScript client).** MIT, generates TS SDK/types (also Zod schemas), fetch and axios clients, runs on Node.js 22+ [belegt]. Pros: TS-native, typically cleaner output [Annahme]. Cons: second tool and second pinned dependency; two generation steps to keep in the drift check; Node 22+ requirement.
-  - **C – OpenAPI Generator (server) + Orval (TypeScript client).** MIT [belegt]; generates clients incl. React Query hooks, SWR, Zod [belegt]. Pros: ready-made React hooks. Cons: pulls in additional libraries (e.g. a query library), conflicting with the minimal-dependency rule (FR-21).
-  - **D – Code-first (e.g. springdoc generates the spec from controllers).** Contradicts ADR-006/D-11 (spec as single source of truth, spec-first). **Rejected.**
-- **Recommendation (non-binding):** **Option A as default, decided by a time-boxed spike (≈1 h, AP-02):** generate server interfaces and the TS client from the same example spec, compile both, and look at the TS output. Switch the *client only* to B if A's TypeScript output is clearly unsuitable. Reasons: one tool = fewest dependencies and one drift check (FR-21, BR-15), no extra setup for Stufe 1.
-- **Sub-decision – generated code in Git [Vorschlag]:** generate **server interfaces at build time** (not committed, `target/`), but **commit the generated TS client** (e.g. `use-web/src/api/generated/`). A CI job regenerates it and fails on any diff (`git diff --exit-code`) – this is the visible drift check (FR-12, matrix G-4c) and makes lint rules for FR-11 (no handwritten HTTP calls outside the generated client) checkable.
-- **Decision:** _to be filled by Lasse_
-- **Rationale:** _(on acceptance)_
+- **Status:** Accepted (amends ADR-006)
+- **Decision:** OpenAPI Generator is used for both sides, spec-first, from one OpenAPI file under version control.
+  - Backend: generator `spring` with option `interfaceOnly`; controllers implement the generated interfaces. The
+    interfaces are generated at build time and not committed.
+  - Frontend: TypeScript client generated with `typescript-fetch` (`typescript-axios` only if documented in the
+    implementing PR). The generated client is committed.
+  - The generator version is pinned exactly; updates are deliberate PRs.
+  - CI regenerates the client and fails on any difference to the committed files (drift check, ADR-011).
+- **Rationale:** One tool means one configuration, one pinned dependency and one drift check (FR-21, BR-15) without
+  additional runtimes. OpenAPI Generator is Apache-2.0 licensed and provides the required server and client
+  generators. Committing the client makes changes visible in review and allows lint rules for FR-11.
 - **Consequences:**
-  - New build-time dependency, pinned to an exact version (BR-15/FR-21); generator version updates become deliberate PRs.
-  - Controllers implement generated interfaces; handwritten controller signatures that bypass the interface are a drift risk → architecture test/convention [Vorschlag].
-  - **FR-11 vs. ADR-006:** FR-11 is still formulated conditionally; with this ADR it becomes de facto mandatory (open question R-14, decided after the pipeline is built).
-  - Generated code is excluded from handwritten-code lint rules where appropriate, but **not** from dependency/secret scans.
-  - License of generated output: generators typically do not impose their license on the output [Annahme – confirm once in the generator docs before the licence check in ADR-011].
-- **Affected documents:** `9_architecture_decisions.md` (amend ADR-006), arc42 ch. 4, `guidelines.md` ch. 4 (CI), `frontend_guidelines.md`, `backend_guidelines.md`, `05` (FR-10 to FR-12, BR-03 to BR-05, G-4c).
----
+  - A short spike (compile generated interfaces and client, inspect the TypeScript output) precedes the first
+    implementation; if it fails, only the client generator may be replaced and this ADR is updated.
+  - Contract changes always start in the specification; controllers must not bypass the generated interfaces.
+  - Generated code is excluded from handwritten-code lint rules where appropriate, but not from dependency and
+    secret scans.
+  - The generated client must be able to send the session cookie and the CSRF header (ADR-008); this is verified in
+    the spike and configured centrally in the communication layer.
+  - FR-11 is satisfied by this ADR.
 
-## ADR-011 (provisional): CI Platform and Check Stage Model (decision OPEN)
+## ADR-011: CI Platform and Check Stage Model
 
-- **Status:** Proposed (draft)
-- **Context:** **Lasse decided (D-13): GitHub Actions** (admin rights in the repo). The brief asks for tiered checks: **Stufe 1** without elaborate setup, directly in the project; secondary checks ("Stufe 2 light") only if capacity remains; SonarQube and AI checks in the pipeline are dropped (D-19, D-20). Open question R-08: what "no setup" means on a developer machine.
-- **Principle [Vorschlag]:** *CI is a thin wrapper.* Every check is runnable locally with one command; the workflow only calls these commands. This keeps Stufe 1 reproducible and makes the method portable to the master thesis (existing project).
-- **Options for the Stufe 1 baseline (R-08):**
-  - **A – Only JDK 21 + Node.js LTS + the project's package managers (Maven wrapper, npm). No Docker, no accounts, no API keys, no Python.** Recommended.
-  - **B – A plus Docker** (for tools distributed as images). More tools usable, but violates "no elaborate setup".
-  - **C – strictly one command** via a single wrapper script that downloads missing tools. Convenient, but adds an unreviewed download step (supply-chain risk).
-- **Candidate checks and tool facts [belegt unless marked]:**
-  | Check | Tool candidate | Facts | Runs with baseline A? | Proposed stage |
-  |---|---|---|---|---|
-  | OpenAPI lint (BR-03, BR-08, BR-10) | Spectral | Apache-2.0, custom rulesets, npm CLI, GitHub Action | yes (npx) | 1 |
-  | Breaking changes vs. `main` (FR-12, BR-05) | oasdiff | Apache-2.0, binary/Docker/brew/go, GitHub Action | **CI yes; local only if installed** | 1 (CI) |
-  | Drift check (FR-10 to FR-12, G-4c) | regenerate + `git diff --exit-code` | see ADR-010 | yes | 1 |
-  | Frontend lint incl. unsafe sinks (FR-14 to FR-17) | ESLint + React/security rules | rule names to be verified in AP-04 | yes (npm) | 1 |
-  | Secrets (BR-15) | gitleaks | MIT; project notes "feature complete, security patches only" | **binary; CI action** | 1 (CI) |
-  | Dependency vulnerabilities (BR-14, BR-15, FR-22) | **OSV-Scanner** | Apache-2.0, scans `pom.xml` and `package-lock.json`, GitHub Action, no API key mentioned (needs network) | binary; CI action | 1 (CI) |
-  | (alternative) | OWASP Dependency-Check | Apache-2.0, Maven plugin; **NVD API key effectively required** (slow without) | needs account/key | 2 light |
-  | Header test (BR-13) | JUnit/MockMvc integration test | no extra tool | yes (Maven) | 1 |
-  | Contract tests against running backend (BR-04) | Schemathesis | MIT, pip install, GitHub Action | **needs Python** | 2 light (or spec-based MockMvc tests in Stufe 1 [Vorschlag]) |
-  | Architecture rule (BR-02) | ArchUnit-style test | license not verified | yes (Maven) | 1 |
-  | Licence check | not selected | – | – | 2 light |
-
-- **Recommendation (non-binding):** Baseline **A**; Stufe 1 = spectral lint, drift check, ESLint, header test, plus **CI-only** oasdiff, OSV-Scanner and gitleaks (tools that would need local installs run as pinned GitHub Actions; local use optional). Stufe 2 light (only if G4 says yes): licence check, Schemathesis, Dependency-Check. Branch protection with required checks (FR-22, BR-14, matrix row "Meta-Check").
-- **Decision:** _to be filled by Lasse_
-- **Rationale:** _(on acceptance)_
+- **Status:** Accepted
+- **Decision:** GitHub Actions is the CI platform. Every check can be run locally with one command; workflows only
+  call these commands. Stage 1 requires only JDK 21, Node.js (LTS) and the project's package managers (Maven Wrapper,
+  npm): no Docker, no accounts or API keys, no Python.
+  - **Stage 1 (mandatory):** OpenAPI linting (Spectral, including a rule that allows `apiKey` only in cookies, never
+    in query parameters), drift check of the generated client, ESLint with TypeScript and React security rules,
+    backend integration tests for security headers (BR-13) and for session and CSRF behaviour (BR-09, BR-11),
+    architecture test (BR-02), plus the CI-only
+    tools oasdiff (breaking changes against `main`), OSV-Scanner (dependency vulnerabilities in `pom.xml` and
+    `package-lock.json`) and gitleaks (secrets), run as pinned GitHub Actions.
+  - **Stage 2 light (only if capacity remains):** licence check, contract tests against the running backend (e.g.
+    Schemathesis), OWASP Dependency-Check.
+  - Branch protection requires the stage 1 checks before merge. Pull requests use a template that names affected
+    ADRs and confirms security conformance.
+- **Rationale:** The baseline provides automated checks without elaborate setup (FR-22, BR-14). Tools that need a local
+  installation run in CI only and are optional locally. The selected tools are freely licensed (Apache-2.0: Spectral,
+  oasdiff, OSV-Scanner; MIT: gitleaks) and need no API key.
 - **Consequences:**
-  - Actions are pinned to versions (commit SHA) and workflow permissions are minimal, in line with the supply-chain/CI-CD references already used in `guidelines.md` [Vorschlag].
-  - Check list and stage definition replace the old "Stufe 2 = e.g. SonarQube" wording in `05`.
-  - Pipeline time and maintenance effort are measured in AP-10 (evaluation).
-- **Affected documents:** `guidelines.md` ch. 4, arc42 ch. 4/9, README, `05`, `04` (AP-04).
----
+  - Actions are pinned to a commit SHA, workflow permissions are minimal, and tool versions are fixed and reviewed
+    like any other dependency (BR-15, FR-21).
+  - Replacing a single tool is a pipeline change, not an architecture change.
+  - Pipeline runtime and maintenance effort are measured during the evaluation.
 
-## Entscheidungsliste für Gate G1 (Lasse)
 
-| # | Entscheidung | Empfehlung (unverbindlich) |
-|---|---|---|
-| 1 | ADR-007: React + TS bestätigen; Vite als Build-Tool | ja; keine zusätzliche State-Bibliothek zu Beginn |
-| 2 | ADR-008: Variante A (Token im Speicher, kein Refresh) oder B (Refresh-Cookie) | A für den Prototyp, B als dokumentierte Erweiterung |
-| 3 | ADR-008: Token-Format und Ausstellung | JWT (Nimbus `JwtEncoder`, Spring Resource Server), kurze Laufzeit, `jti`-Denylist beim Logout |
-| 4 | ADR-009: Spring Boot 4.1.x, JDK 21, Maven | ja (3.5 ohne OSS-Support, 4.0 endet 31.12.2026) |
-| 5 | ADR-010: Generator A (OpenAPI Generator für beide Seiten) mit Spike, Fallback B nur für den Client | A + Spike in AP-02 |
-| 6 | ADR-010: Generierten TS-Client einchecken, Server-Interfaces beim Build erzeugen | ja |
-| 7 | ADR-011 / R-08: Baseline nur JDK + Node; CI-only-Tools erlaubt | ja |
-| 8 | R-17 (neu): Benutzer im Prototyp – ein konfigurierter Nutzer? | ja |
-| 9 | R-18 (neu): Lizenz-Header und Einbindung von `use-core` prüfen (vor AP-02) | Prüfauftrag |
+
+## Suggested additions to `references.md`
+
+React versions (https://react.dev/versions), Spring Boot support periods (https://endoflife.date/spring-boot), Spring
+Security JWT resource server, OWASP HTML5 Security and CSRF Prevention Cheat Sheets, OpenAPI Generator, Spectral,
+oasdiff, OSV-Scanner, gitleaks (URLs as linked above; retrieval date 2026-10-07).
+
+## Suggested PR description
+
+**Title:** docs: close ADR-007/008, add ADR-009 to ADR-011, amend ADR-006
+
+**Body:** Closes the open technology decisions (frontend framework, authentication, backend stack, code generation, CI
+stage model) and amends ADR-006 to cover server interfaces. Affected ADRs: ADR-006 (amended), ADR-007, ADR-008 (closed),
+ADR-009, ADR-010, ADR-011 (new). Follow-up (separate PRs): update `guidelines.md`, `frontend_guidelines.md`,
+`backend_guidelines.md`, arc42 chapters 4 and 5, security documentation and README. Security conformance: no rule of the
+solution strategy is violated; the CSRF filter exception in ADR-008 is documented and justified there.
 
 ## Quellen (abgerufen am 2026-10-07)
 
