@@ -1,0 +1,2 @@
+# generated client is always written with LF by the generator
+src/api/** text eol=lf
