@@ -235,3 +235,10 @@ Community. [https://owasp.org/www-community/Threat_Modeling](https://owasp.org/w
 MDN Web Docs: Content Security Policy (CSP). (n.d.). MDN Web Docs
 [https://developer.mozilla.org/de/docs/Web/HTTP/Guides/CSP](https://developer.mozilla.org/de/docs/Web/HTTP/Guides/CSP)
 , retrieved 25.05.2026.
+
+## S41
+
+Stack Overflow: *Stack Overflow Developer Survey 2025* (
+2025).
+[https://survey.stackoverflow.co/2025/technology#1-web-frameworks-and-technologies](https://survey.stackoverflow.co/2025/technology#1-web-frameworks-and-technologies),
+retrieved 07.10.2026

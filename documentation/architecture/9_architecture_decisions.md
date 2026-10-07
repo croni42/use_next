@@ -71,14 +71,29 @@ the target architecture.
       logic.
     - Tooling dependency (e.g., OpenAPI Generator) is introduced and must be integrated into the build pipeline.
 
-## ADR-007: Frontend Framework (decision OPEN)
+## ADR-007: Frontend Framework
 
-- **Status:** Open
-- **Decision:** A modern, component-oriented web framework will be used for the frontend.
-- **Rationale:** The user interface should be modular, maintainable, and easy to extend. An established framework
-  supports clear component structures, centralised state management, and a clean separation of presentation and logic.
-- **Consequences:** The specific technology choice affects maintainability, learning effort, build process, and the
-  frontend’s security model.
+- **Status:** Proposed (draft, replaces Open once accepted)
+- **Context:** arc42 chapter 2 requires freely available, long-term maintainable frontend technologies (2.1), a
+  widely used and well-documented technology base (2.2), desktop browsers only (Firefox, Chrome, Edge) and local
+  execution. ADR-004 already fixes a modular, component-oriented architecture. FR-14/FR-15 require safe-by-default
+  rendering and no unsafe DOM injection.
+- **Options considered:**
+  - **A – React + TypeScript:**  Very widely used and well documented, large ecosystem for the generated-client and
+    lint tooling in ADR-010/011. Cons: React is a library, not a full framework – routing, state and build tooling
+    must be chosen explicitly (more decisions, more dependencies; see FR-21).
+  - **B – Angular:** It would bring more built-in structure at the cost of a
+    steeper learning curve and fewer dependency choices.
+- **Decision:** Option A - React & TypeScript
+- **Rationale:** This library is the most used Web library as seen on the [StackOverflowSurvey](../references.md#s41)
+  For an open source research project this would be the best choice.
+- **Consequences:**
+  - The dev server differs from the production build (e.g. HMR/inline scripts) – header and CSP checks must
+    run against the production build, not the dev server.
+  - Frontend needs Node.js (LTS) in the toolchain. With ADR-009 the project has two toolchains (JDK + Node).
+  - Closes the TODO "update guidelines after technologies have been defined" in `frontend_guidelines.md`.
+- **Affected documents:** `9_architecture_decisions.md`, arc42 ch. 4 (solution strategy) and ch. 5,
+  `frontend_guidelines.md`, `FRONTEND.md`, README (status/tech stack)
 
 ## ADR-008: Authentication and Session Concept (decision OPEN)
 
@@ -93,41 +108,14 @@ the target architecture.
   cookie attributes, clear lifetimes, and appropriate protective measures must be taken into account. Any authentication
   or session concept must be defined in the OpenAPI security scheme during implementation.
 
-# 11 – ADR-Entwürfe (AP-01, Gate G1)
-
-*Stand: 2026-10-07. Erstellt auf ausdrückliche Ansage von Lasse. **Nichts davon ist beschlossen.** Empfehlungen sind unverbindlich; die Entscheidung trifft Lasse (Liste am Ende). Die ADR-Abschnitte sind englisch, damit sie unverändert ins Repo (`9_architecture_decisions.md`) übernommen werden können. Nummern 009 bis 011 sind **provisorisch** und werden erst beim Einbringen ins Repo vergeben.*
-
-**Kennzeichnung:** **[belegt]** = Quelle mit Abrufdatum 2026-10-07 (Liste unten) · **[Lasse]** = Entscheidung/Angabe von Lasse · **[Vorschlag]** · **[Annahme]** = nicht belegt, vor Einsatz prüfen.
-
-## Wichtige Befunde vorab
-
-1. **`use-core` ist Java [belegt]** (Repo `useocl/use`: Java 62.8 %, Maven, Module `use-core`, `use-gui`, `use-assembly`; Root-POM `org.tzi.use:use:7.5.0`, Java 21). Die Annahme in D-09 ist damit bestätigt. Folge: JDK 21 ist die natürliche Baseline für das Backend.
-2. **Lizenz: `use-core` GPL, `use_next` GPLv3 – kein Konflikt in der Stichprobe [belegt, nur Stichprobe].** GitHub zeigt für `useocl/use` „GPL-2.0". Der Header der geprüften Datei `Session.java` lautet „version 2 of the License, or (at your option) any later version" (GPL-2.0-or-later, damit mit GPLv3 kombinierbar). **Nicht geprüft:** die Root-`LICENSE` (Abruf 404) und alle anderen Dateien. Eine GPL-2.0-*only*-Datei wäre mit GPLv3 nicht kombinierbar. → Prüfauftrag **R-18**: vor AP-02 per `grep` im geklonten Repo alle Lizenz-Header auf „any later version" prüfen.
-3. **Spring Boot 3.5 hat bereits kein OSS-Support mehr [belegt]**; 4.0 läuft am 2026-12-31 aus, 4.1 (Release 2026-06-30) bis 2027-07-31. Daher keine Empfehlung für 3.x.
-4. **OWASP rät ab, Session-Identifier in `localStorage` abzulegen [belegt]** – wichtig für ADR-008, weil Lasse token-basierte Auth gewählt hat (D-08).
----
-
-## ADR-007: Frontend Framework (decision OPEN)
-
-- **Status:** Proposed (draft, replaces Open once accepted)
-- **Context:** arc42 chapter 2 requires freely available, long-term maintainable frontend technologies (2.1), a widely used and well-documented technology base (2.2), desktop browsers only (Firefox, Chrome, Edge) and local execution. ADR-004 already fixes a modular, component-oriented architecture. FR-14/FR-15 require safe-by-default rendering and no unsafe DOM injection.
-- **Options considered:**
-  - **A – React + TypeScript** (direction chosen by Lasse, D-07). MIT-licensed [belegt]; current docs cover React 19.3 (2026-09-09) [belegt]. Very widely used and well documented [Annahme, not sourced]; large ecosystem for the generated-client and lint tooling in ADR-010/011. Cons: React is a library, not a full framework – routing, state and build tooling must be chosen explicitly (more decisions, more dependencies; see FR-21).
-  - **B – Vue 3 + TypeScript**, **C – Angular**, **D – Svelte.** Not examined in depth (license, version and ecosystem not verified); listed only for completeness. Angular would bring more built-in structure (and fewer dependency choices) at the cost of a steeper learning curve [Annahme].
-- **Recommendation (non-binding):** Option A, as already directed by Lasse. Keep the dependency set minimal (FR-21): Vite as build tool (current major line 8.x, supported per vite.dev [belegt]), React built-in state first (no additional state library until needed), TypeScript in strict mode, ESLint with a React/security rule set (ADR-011). Test runner (e.g. Vitest + Testing Library) [Annahme, to verify in AP-04].
-- **Decision:** _to be filled by Lasse_
-- **Rationale:** _(on acceptance)_ React provides safe-by-default rendering of untrusted text (escaping) [Annahme, to be confirmed in the React docs], which supports FR-14; `dangerouslySetInnerHTML` is the single explicit unsafe sink that FR-15/FR-16 can ban or centralise via lint (rule candidate `react/no-danger` [Annahme, verify]).
-- **Consequences:**
-  - The dev server differs from the production build (e.g. HMR/inline scripts) – **BR-13 header and CSP checks must run against the production build**, not the dev server [Annahme].
-  - Frontend needs Node.js (LTS) in the toolchain; with ADR-009 the project has two toolchains (JDK + Node).
-  - Closes the TODO "update guidelines after technologies have been defined" in `frontend_guidelines.md`.
-- **Affected documents:** `9_architecture_decisions.md`, arc42 ch. 4 (solution strategy) and ch. 5, `frontend_guidelines.md`, `FRONTEND.md`, README (status/tech stack), `05-guideline-check-matrix` (FR-01 to FR-04, FR-14 to FR-16).
----
 
 ## ADR-008: Authentication and Session Concept (decision OPEN)
 
 - **Status:** Proposed (draft)
-- **Context:** The existing ADR-008 text is deliberately simple and extensible; the method must be defined centrally in the OpenAPI security scheme (BR-08, FR-18), session data must not be sent via URLs (BR-10, FR-17), and token handling needs defined lifetime and invalidation (BR-11). The system runs locally first (arc42 2.1). **Lasse decided (D-08): token-based authentication, implemented directly in the main project.** Earlier, Claude had recommended cookie sessions; that recommendation is **not followed** – this draft works out the token-based design and its consequences.
+- **Context:** The existing ADR-008 text is deliberately simple and extensible; the method must be defined 
+  centrally in the OpenAPI security scheme (BR-08, FR-18), session data must not be sent via URLs (BR-10, FR-17), 
+  and token handling needs defined lifetime and invalidation (BR-11).  The system runs locally first (arc42 2.1). 
+  **Lasse decided (D-08): token-based authentication, implemented directly in the main project.** Earlier, Claude had recommended cookie sessions; that recommendation is **not followed** – this draft works out the token-based design and its consequences.
 - **Options considered (all token-based unless stated):**
   - **A – Short-lived bearer token (JWT), kept only in JavaScript memory, sent in the `Authorization` header; no refresh in the prototype (re-login after page reload).** OWASP advises against putting session identifiers in `localStorage` because any XSS can read them [belegt]; memory-only storage avoids persistence but is not XSS-proof either (an XSS can still use the token while the page is open). Bearer-header authentication is not subject to classic CSRF because browsers do not attach the header automatically [belegt, OWASP CSRF Cheat Sheet: custom request headers]. Pros: simplest, no cookies, no CSRF machinery, fits "local first". Cons: reload logs the user out; XSS during a session still compromises the token.
   - **B – Option A plus refresh token in an `HttpOnly`, `Secure`, `SameSite=Strict` cookie** (silent re-login after reload). Pros: better UX, token never in persistent JS storage. Cons: reintroduces cookies, so **BR-09 (CSRF) applies to the refresh/logout endpoints** and cookie attributes/lifetimes must be specified; more code and tests (largest time risk in AP-03).
@@ -157,20 +145,29 @@ the target architecture.
 ## ADR-009 (provisional): Backend Language, Framework and Integration of `use-core` (decision OPEN)
 
 - **Status:** Proposed (draft)
-- **Context:** ADR-001 to ADR-003 fix reuse of `use-core` behind a backend wrapper; BR-02 requires a dedicated adapter layer. **Lasse decided (D-09): Java + Spring Boot, in-process integration.** `use-core` is Java, built with Maven, targets Java 21 [belegt].
+- **Context:** ADR-001 to ADR-003 fix reuse of `use-core` behind a backend wrapper. `use-core` is Java, built with 
+  Maven, targets Java 21.
 - **Options considered:**
-  - **A – Java 21 + Spring Boot 4.1.x (Spring MVC), Maven.** Spring Boot 4.1 released 2026-06-30, OSS support until 2027-07-31, supports Java 17–26 [belegt]. Same language/build tool as `use-core` (Maven) → straightforward in-process dependency. Cons: Boot 4 is a new major line (2025-11) – third-party libraries and generators may lag [Annahme]; the OpenAPI Generator offers a `useSpringBoot4` option (default `false`) [belegt], but real compatibility of the generated code must be proven in a short spike (AP-02).
-  - **B – Spring Boot 4.0.x.** OSS support ends 2026-12-31 [belegt] – too short-lived for a project meant to be continued by third parties. Not recommended.
-  - **C – Spring Boot 3.5.x.** OSS support already ended [belegt]; only commercial support. Not recommended; the generator default (`useSpringBoot3: true`) [belegt] would be the only advantage.
-  - **D – Other JVM frameworks (e.g. Quarkus, Micronaut).** Not examined; no stated reason to leave Spring (D-09).
-- **Recommendation (non-binding):** Option A; JDK 21 as baseline (matches `use-core`), Maven (with wrapper) as build tool, Spring MVC (blocking) rather than WebFlux because `use-core` is a synchronous library [Annahme]. Fall back to B only if the generator spike fails.
-- **Decision:** _to be filled by Lasse_
+  - **A – 
+- **Decision:** Java 21 + Spring Boot 4.1.x (Spring MVC), Maven.** Spring Boot 4.1 released 2026-06-30, OSS support until  
+  2027-07-31, supports Java 17–26.  Same language/build tool as `use-core` (Maven) → straightforward
+  in-process dependency.  
 - **Rationale:** _(on acceptance)_
 - **Consequences:**
-  - `use-back` contains an **adapter package** that is the only place importing `org.tzi.use.*` (BR-02). An architecture test (e.g. ArchUnit [Annahme, verify license]) can enforce this automatically (matrix row BR-02).
-  - **Open technical questions (R-18), to answer before AP-02:** (1) how `use-core` is obtained – Maven Central/other registry, or built from source (`mvn install` of the `use` repo, Git submodule) [not verified]; (2) license headers of all used `use-core` files (see findings above); (3) thread-safety/state handling of `use-core` objects when used by concurrent HTTP requests [not verified] – the adapter may have to serialize access.
-  - Security headers, validation (BR-06), authorization (BR-07) and error handling (BR-12) are implemented with Spring Security / Bean Validation.
-- **Affected documents:** `9_architecture_decisions.md`, arc42 ch. 4/5, `backend_guidelines.md` (TODO technologies), `BACKEND.md`, README, `05` (BR-01, BR-02, BR-06, BR-12, BR-13).
+  - `use-back` contains an **adapter package** that is the only place importing `org.tzi.use.*`  (BR-02). An 
+    architecture test (e.g. ArchUnit [Annahme, verify license]) can enforce this automatically (matrix row BR-02).
+  - **Open technical questions (R-18), to answer before AP-02:** (1) how `use-core` is obtained  – Maven 
+    Central/other registry, or built from source (`mvn install` of the `use` repo, Git submodule)
+    [not verified];  (2) license headers of all used `use-core` files (see findings above); (3)  thread-safety/state 
+    handling of `use-core` objects when used by concurrent HTTP requests [not verified] – the adapter  may have to 
+    serialize access.
+  - Security headers, validation (BR-06), authorization (BR-07) and error handling (BR-12)  are implemented with 
+    Spring Security / Bean Validation.
+  - Cons: Boot 4 is a new major line (2025-11) – third-party libraries and generators may
+    lag; the OpenAPI  Generator offers a `useSpringBoot4` option (default `false`) [belegt], but real
+    compatibility of the generated code must be proven in a short spike (AP-02).
+- **Affected documents:** `9_architecture_decisions.md`,  arc42 ch. 4/5, `backend_guidelines.md` (TODO technologies),
+  `BACKEND.md`, README, `05` (BR-01, BR-02, BR-06, BR-12, BR-13).
 ---
 
 ## ADR-010 (provisional): OpenAPI Code Generation – Scope and Generator (extends ADR-006) (decision OPEN)
