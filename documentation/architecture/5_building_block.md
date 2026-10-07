@@ -1,29 +1,27 @@
 # 5. Building Block View
 > [Architecture overview — USE_NEXT](0_architecture_overview.md)
 
-```mermaid
-C4Container
-    title Container diagram for USE_NEXT
+```plantuml
+!include <C4/C4_Container>
 
-    Person(modeler, "Modeler / Analyst", "Specifies, analyses and validates UML/OCL models")
+LAYOUT_WITH_LEGEND()
+title Container diagram for USE_NEXT
 
-    System_Boundary(useNext, "USE_NEXT") {
-        Container(useWeb, "use-web", "React, TypeScript, Vite", "Web UI for model visualization, interaction and 
-analysis control (ADR-007)")
-        Container(useBack, "use-back", "Java 21, Spring Boot 4.1.x", "REST API, server-side sessions, CSRF protection, validation, error mapping. Adapter package wraps use-core (ADR-008, ADR-009)")
-    }
+Person(modeler, "Modeler / Analyst", "Specifies, analyses and validates UML/OCL models")
 
-    System_Ext(useCore, "use-core", "Existing USE domain core: model processing, OCL evaluation, validation (ADR-001)")
-    System_Ext(usePlugins, "USE Plugin(s)", "Optional extensions providing additional USE functionality")
+System_Boundary(useNext, "USE_NEXT") {
+    Container(useWeb, "use-web", "React, TypeScript, Vite", "Web UI for model visualization, interaction and analysis control (ADR-007)")
+    Container(useBack, "use-back", "Java 21, Spring Boot 4.1.x", "REST API, server-side sessions, CSRF protection, validation, error mapping. Adapter package wraps use-core (ADR-008, ADR-009)")
+}
 
-    Rel(modeler, useWeb, "Uses", "Browser, HTTPS")
-    Rel(useWeb, useBack, "Makes API calls to", "JSON/HTTPS, OpenAPI-generated client (ADR-006, ADR-010)")
-    Rel(useBack, useCore, "Calls", "in-process Java, adapter package")
-    Rel(usePlugins, useCore, "Registers with", "PluginRuntime")
+System_Ext(useCore, "use-core", "Existing USE domain core: model processing, OCL evaluation, validation (ADR-001)")
+System_Ext(usePlugins, "USE Plugin(s)", "Optional extensions providing additional USE functionality")
 
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+Rel(modeler, useWeb, "Uses", "Browser, HTTPS")
+Rel_R(useWeb, useBack, "Makes API calls to", "JSON/HTTPS, OpenAPI-generated client (ADR-006, ADR-010)")
+Rel_D(useBack, useCore, "Calls", "in-process Java, adapter package")
+Rel_U(usePlugins, useCore, "Registers with", "PluginRuntime")
 ```
-
 `use-core` runs in-process inside `use-back` (ADR-009). It is shown as an external system because it is an existing,
 separately maintained project and not a separately deployable container of USE_NEXT.
 
