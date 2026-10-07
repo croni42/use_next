@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: USE_NEXT PoC API
+  version: 0.0.1
+servers:
+  - url: /api
+paths:
+  /auth/csrf:
+    get:
+      operationId: getCsrfToken
+      tags: [auth]
+      summary: Returns the CSRF token for the current session
+      security: []
+      responses:
+        '200':
+          description: CSRF token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CsrfToken'
+  /auth/login:
+    post:
+      operationId: login
+      tags: [auth]
+      summary: Authenticates and sets the session cookie
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Logged in, session cookie set
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Invalidates the server-side session
+      responses:
+        '204':
+          description: Logged out
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /models/health:
+    get:
+      operationId: getModelsHealth
+      tags: [models]
+      summary: Placeholder business endpoint; evaluates one OCL expression via use-core
+      security:
+        - sessionCookie: []
+      responses:
+        '200':
+          description: Health information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelsHealth'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
+  responses:
+    Unauthorized:
+      description: Not authenticated
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    CsrfToken:
+      type: object
+      required: [headerName, token]
+      properties:
+        headerName:
+          type: string
+        token:
+          type: string
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    UserInfo:
+      type: object
+      required: [username]
+      properties:
+        username:
+          type: string
+    ModelsHealth:
+      type: object
+      required: [status, oclResult]
+      properties:
+        status:
+          type: string
+        oclResult:
+          type: string
+    Problem:
+      type: object
+      required: [status, title]
+      properties:
+        status:
+          type: integer
+        title:
+          type: string
