@@ -4,6 +4,11 @@ info:
   version: 0.0.1
 servers:
   - url: /api
+tags:
+  - name: auth
+    description: Login, logout and session information
+  - name: ocl
+    description: OCL evaluation
 paths:
   /auth/csrf:
     get:
@@ -68,6 +73,8 @@ paths:
       operationId: logout
       tags: [auth]
       summary: Invalidates the server-side session
+      security:
+        - sessionCookie: []
       responses:
         '204':
           description: Logged out

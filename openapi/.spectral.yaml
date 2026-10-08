@@ -1,0 +1,83 @@
+# Spectral ruleset for openapi/openapi.yaml (ADR-011 stage 1). Run: cd use-web && npm run lint:api
+extends: ["spectral:oas"]
+
+rules:
+  # Documentation-style rules of spectral:oas that do not protect the contract; operations carry a summary.
+  info-contact: off
+  info-description: off
+  operation-description: off
+
+  # The generators need an operationId and a tag per operation (FR-10).
+  operation-operationId: error
+  operation-tags: error
+
+  usenext-security-explicit:
+    description: Every operation declares its security requirement explicitly; public operations use `security: []`.
+    message: "BR-08: operation must declare `security` (use `security: []` only for deliberately public operations)."
+    severity: error
+    given: $.paths[*][get,put,post,delete,patch]
+    then:
+      field: security
+      function: truthy
+
+  usenext-apikey-cookie-only:
+    description: apiKey security schemes are only allowed in cookies, never in query or header.
+    message: "BR-10 / FR-17: apiKey security scheme must use `in: cookie`, never query or header."
+    severity: error
+    given: $.components.securitySchemes[?(@.type == 'apiKey')]
+    then:
+      field: in
+      function: enumeration
+      functionOptions:
+        values: [cookie]
+
+  usenext-request-string-limits:
+    description: Strings in request bodies carry a length limit or a fixed set of values.
+    message: "BR-06: request string needs `maxLength` or `enum`."
+    severity: error
+    given: $.paths[*][get,put,post,delete,patch].requestBody.content[*].schema..[?(@ && @.type == 'string')]
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          anyOf:
+            - required: [maxLength]
+            - required: [enum]
+
+  usenext-parameter-string-limits:
+    description: String path and query parameters carry a length limit or a fixed set of values.
+    message: "BR-06: string parameter needs `maxLength` or `enum`."
+    severity: error
+    given: $..parameters[?(@ && (@.in == 'path' || @.in == 'query'))].schema
+    then:
+      function: schema
+      functionOptions:
+        schema:
+          if:
+            properties:
+              type: { const: string }
+            required: [type]
+          then:
+            anyOf:
+              - required: [maxLength]
+              - required: [enum]
+
+  usenext-error-problem-schema:
+    description: 4xx and 5xx responses use the shared Problem shape (status, title, detail).
+    message: "BR-12: error response must have an application/json body with the Problem schema (required status and title)."
+    severity: error
+    given: $.paths[*][get,put,post,delete,patch].responses[?(@property.match(/^[45]/))]
+    then:
+      field: content.application/json.schema
+      function: schema
+      functionOptions:
+        schema:
+          type: object
+          required: [required, properties]
+          properties:
+            required:
+              type: array
+              contains: { const: status }
+            properties:
+              type: object
+              required: [status, title, detail]

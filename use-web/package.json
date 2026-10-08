@@ -10,6 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "lint:api": "spectral lint ../openapi/openapi.yaml --ruleset ../openapi/.spectral.yaml --fail-severity=warn",
     "preview": "vite preview",
     "test": "vitest run",
     "generate:api": "openapi-generator-cli generate -c openapi-generator.config.json"
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "2.41.0",
+    "@stoplight/spectral-cli": "6.17.0",
     "@testing-library/dom": "10.4.2",
     "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "14.6.7",
