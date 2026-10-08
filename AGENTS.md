@@ -27,6 +27,7 @@ cd use-back && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # dev pro
 cd use-web && npm ci && npm test && npm run lint && npm run build      # frontend checks
 cd use-web && npm run dev                 # Vite dev server, proxies /api to localhost:8080
 bash scripts/check-drift.sh               # fails if the committed client differs from the spec
+cd use-web && npm run format          # Prettier (write); `format:check` only checks
 cd use-web && npm run lint:api            # Spectral lint of openapi/openapi.yaml (ruleset: openapi/.spectral.yaml)
 bash scripts/check-stage1.sh             # all locally runnable stage 1 checks in sequence (stops at the first failure)
 ```

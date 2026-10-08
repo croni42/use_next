@@ -28,6 +28,8 @@ step "frontend: npm test"
 (cd use-web && npm test)
 step "frontend: npm run lint"
 (cd use-web && npm run lint)
+step "frontend: npm run format:check"
+(cd use-web && npm run format:check)
 step "frontend: npm run build"
 (cd use-web && npm run build)
 
