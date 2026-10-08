@@ -1,0 +1,4 @@
+[[IgnoredVulns]]
+id = "GHSA-vfj7-8cjw-p6xm"
+ignoreUntil = 2027-01-08
+reason = "braces: DoS via deeply nested glob patterns. Transitive dev-only dependency of @stoplight/spectral-cli, only fed with files from this repository, not part of any runtime artifact. No fix available."
