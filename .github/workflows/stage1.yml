@@ -143,7 +143,7 @@ jobs:
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
       # --no-resolve: only the dependencies declared in pom.xml are checked; the transitive Maven
       # resolution cannot run because use-core is not in Maven Central.
-      - run: osv-scanner scan source --no-resolve -L use-back/pom.xml -L use-web/package-lock.json
+      - run: osv-scanner scan source --config=osv-scanner.toml --no-resolve -L use-back/pom.xml -L use-web/package-lock.json
 
   gitleaks:
     runs-on: ubuntu-24.04
