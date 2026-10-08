@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: USE_NEXT PoC API
+  title: USE_NEXT API
   version: 0.0.1
 servers:
   - url: /api

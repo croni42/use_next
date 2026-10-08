@@ -1,4 +1,4 @@
-package de.haw.usenext.poc.security;
+package de.haw.usenext.security;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -37,8 +37,8 @@ public class SecurityConfig {
 
     /** Prototype assumption (R-17): exactly one configured user; the hash comes from configuration. */
     @Bean
-    UserDetailsService userDetailsService(@Value("${poc.auth.username}") String username,
-                                          @Value("${poc.auth.password-hash}") String passwordHash) {
+    UserDetailsService userDetailsService(@Value("${usenext.auth.username}") String username,
+                                          @Value("${usenext.auth.password-hash}") String passwordHash) {
         return new InMemoryUserDetailsManager(User.withUsername(username).password(passwordHash).roles("USER").build());
     }
 

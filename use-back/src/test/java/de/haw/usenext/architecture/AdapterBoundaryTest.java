@@ -1,4 +1,4 @@
-package de.haw.usenext.poc.architecture;
+package de.haw.usenext.architecture;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
@@ -8,7 +8,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 /** BR-02: org.tzi.use.* may only be imported inside the adapter package. */
-@AnalyzeClasses(packages = "de.haw.usenext.poc", importOptions = ImportOption.DoNotIncludeTests.class)
+@AnalyzeClasses(packages = "de.haw.usenext", importOptions = ImportOption.DoNotIncludeTests.class)
 class AdapterBoundaryTest {
 
     @ArchTest

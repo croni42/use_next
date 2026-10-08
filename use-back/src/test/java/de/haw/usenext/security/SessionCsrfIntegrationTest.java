@@ -1,4 +1,4 @@
-package de.haw.usenext.poc.security;
+package de.haw.usenext.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -21,7 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "poc.auth.password-hash={noop}test-password")
+        properties = "usenext.auth.password-hash={noop}test-password")
 class SessionCsrfIntegrationTest {
 
     private static final Pattern TOKEN = Pattern.compile("\"token\"\\s*:\\s*\"([^\"]+)\"");

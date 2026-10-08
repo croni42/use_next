@@ -1,8 +1,8 @@
-package de.haw.usenext.poc.api;
+package de.haw.usenext.api;
 
-import de.haw.usenext.poc.api.model.CsrfToken;
-import de.haw.usenext.poc.api.model.LoginRequest;
-import de.haw.usenext.poc.api.model.UserInfo;
+import de.haw.usenext.api.model.CsrfToken;
+import de.haw.usenext.api.model.LoginRequest;
+import de.haw.usenext.api.model.UserInfo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;

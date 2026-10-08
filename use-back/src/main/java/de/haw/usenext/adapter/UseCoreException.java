@@ -1,4 +1,4 @@
-package de.haw.usenext.poc.adapter;
+package de.haw.usenext.adapter;
 
 public class UseCoreException extends RuntimeException {
 

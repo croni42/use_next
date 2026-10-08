@@ -1,4 +1,4 @@
-package de.haw.usenext.poc;
+package de.haw.usenext;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

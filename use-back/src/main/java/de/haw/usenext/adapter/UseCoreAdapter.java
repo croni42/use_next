@@ -1,4 +1,4 @@
-package de.haw.usenext.poc.adapter;
+package de.haw.usenext.adapter;
 
 /**
  * Port to the use-core domain. Only this package may import org.tzi.use.* (BR-02).

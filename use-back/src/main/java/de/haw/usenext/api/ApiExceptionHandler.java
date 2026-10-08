@@ -1,6 +1,6 @@
-package de.haw.usenext.poc.api;
+package de.haw.usenext.api;
 
-import de.haw.usenext.poc.api.model.Problem;
+import de.haw.usenext.api.model.Problem;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
