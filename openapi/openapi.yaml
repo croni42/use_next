@@ -17,12 +17,12 @@ paths:
       summary: Returns the CSRF token for the current session
       security: []
       responses:
-        "200":
+        '200':
           description: CSRF token
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CsrfToken"
+                $ref: '#/components/schemas/CsrfToken'
   /auth/login:
     post:
       operationId: login
@@ -34,24 +34,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginRequest"
+              $ref: '#/components/schemas/LoginRequest'
       responses:
-        "200":
+        '200':
           description: Logged in, session cookie set
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserInfo"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
+                $ref: '#/components/schemas/UserInfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
           description: Login failed (same response for unknown user and wrong password)
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+                $ref: '#/components/schemas/Problem'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /auth/me:
     get:
       operationId: getCurrentUser
@@ -60,14 +60,14 @@ paths:
       security:
         - sessionCookie: []
       responses:
-        "200":
+        '200':
           description: Current user
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserInfo"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
+                $ref: '#/components/schemas/UserInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /auth/logout:
     post:
       operationId: logout
@@ -76,12 +76,12 @@ paths:
       security:
         - sessionCookie: []
       responses:
-        "204":
+        '204':
           description: Logged out
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /ocl/evaluate:
     post:
       operationId: evaluateOcl
@@ -94,27 +94,27 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OclEvaluationRequest"
+              $ref: '#/components/schemas/OclEvaluationRequest'
       responses:
-        "200":
+        '200':
           description: Evaluation result
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OclEvaluationResult"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
-        "422":
+                $ref: '#/components/schemas/OclEvaluationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
           description: The expression does not compile or its evaluation failed; detail carries a sanitised message
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
-        "503":
+                $ref: '#/components/schemas/Problem'
+        '503':
           description: Evaluation exceeded the time limit or the server is busy
           headers:
             Retry-After:
@@ -124,7 +124,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: '#/components/schemas/Problem'
 components:
   securitySchemes:
     sessionCookie:
@@ -137,19 +137,19 @@ components:
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Problem"
+            $ref: '#/components/schemas/Problem'
     Forbidden:
       description: Missing or invalid CSRF token
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Problem"
+            $ref: '#/components/schemas/Problem'
     Unauthorized:
       description: Not authenticated
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/Problem"
+            $ref: '#/components/schemas/Problem'
   schemas:
     CsrfToken:
       type: object

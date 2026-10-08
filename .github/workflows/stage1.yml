@@ -3,7 +3,7 @@ name: stage1
 on:
   pull_request:
   push:
-    branches: [main, "WIP-**", "feature/**"]
+    branches: [main, 'WIP-**', 'feature/**']
   workflow_dispatch:
 
 concurrency:
@@ -24,7 +24,7 @@ jobs:
       - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: '21'
           cache: maven
       # use-core is built from the pinned upstream commit on every run (--force), so the cached
       # Maven repository can never supply a stale or unverified use-core.
@@ -41,7 +41,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24"
+          node-version: '24'
           cache: npm
           cache-dependency-path: use-web/package-lock.json
       - run: npm ci
@@ -65,10 +65,10 @@ jobs:
       - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
         with:
           distribution: temurin
-          java-version: "21"
+          java-version: '21'
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24"
+          node-version: '24'
           cache: npm
           cache-dependency-path: use-web/package-lock.json
       - run: bash scripts/check-drift.sh
@@ -82,7 +82,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24"
+          node-version: '24'
           cache: npm
           cache-dependency-path: use-web/package-lock.json
       - run: npm ci

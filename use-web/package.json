@@ -11,8 +11,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:api": "spectral lint ../openapi/openapi.yaml --ruleset ../openapi/.spectral.yaml --fail-severity=warn",
-    "format": "prettier --write . ../openapi ../.github",
-    "format:check": "prettier --check . ../openapi ../.github",
+    "format": "prettier --config .prettierrc.json --write . ../openapi ../.github",
+    "format:check": "prettier --config .prettierrc.json --check . ../openapi ../.github",
     "preview": "vite preview",
     "test": "vitest run",
     "generate:api": "openapi-generator-cli generate -c openapi-generator.config.json"
