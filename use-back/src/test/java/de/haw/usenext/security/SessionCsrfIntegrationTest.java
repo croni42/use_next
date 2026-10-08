@@ -21,7 +21,11 @@ import org.springframework.boot.test.context.SpringBootTest;
  */
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = "usenext.auth.password-hash={noop}test-password")
+        properties = {
+            "usenext.auth.password-hash={noop}test-password",
+            // test only: lets a request claim HTTPS via X-Forwarded-Proto (HSTS is written for secure requests only)
+            "server.forward-headers-strategy=native"
+        })
 class SessionCsrfIntegrationTest {
 
     private static final Pattern TOKEN = Pattern.compile("\"token\"\\s*:\\s*\"([^\"]+)\"");
@@ -34,6 +38,11 @@ class SessionCsrfIntegrationTest {
 
     private HttpResponse<String> send(String method, String path, String cookie, String csrf, String body)
             throws Exception {
+        return send(method, path, cookie, csrf, body, null);
+    }
+
+    private HttpResponse<String> send(String method, String path, String cookie, String csrf, String body,
+                                      String forwardedProto) throws Exception {
         HttpRequest.Builder b = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/api" + path))
                 .method(method, body == null
                         ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body));
@@ -45,6 +54,9 @@ class SessionCsrfIntegrationTest {
         }
         if (csrf != null) {
             b.header("X-CSRF-TOKEN", csrf);
+        }
+        if (forwardedProto != null) {
+            b.header("X-Forwarded-Proto", forwardedProto);
         }
         return http.send(b.build(), HttpResponse.BodyHandlers.ofString());
     }
@@ -171,5 +183,64 @@ class SessionCsrfIntegrationTest {
         HttpResponse<String> r = send("POST", "/auth/login", anon[0], null, LOGIN_BODY);
         assertEquals(403, r.statusCode());
         assertEquals("{\"status\":403,\"title\":\"Forbidden\"}", r.body());
+    }
+
+    private static void assertSecurityHeaders(HttpResponse<?> r) {
+        String where = r.uri() + " -> " + r.statusCode();
+        assertHeader(r, "X-Content-Type-Options", "nosniff", where);
+        assertHeader(r, "X-Frame-Options", "DENY", where);
+        assertHeader(r, "Cache-Control", "no-cache, no-store, max-age=0, must-revalidate", where);
+        assertHeader(r, "Referrer-Policy", "no-referrer", where);
+        assertHeader(r, "Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'", where);
+        assertHeader(r, "Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), "
+                + "magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()", where);
+    }
+
+    private static void assertHeader(HttpResponse<?> r, String name, String expected, String where) {
+        assertEquals(expected, r.headers().firstValue(name).orElse(null), name + " on " + where);
+    }
+
+    @Test
+    void securityHeadersOnNormalResponse() throws Exception {
+        HttpResponse<String> r = send("GET", "/auth/csrf", null, null, null);
+        assertEquals(200, r.statusCode());
+        assertSecurityHeaders(r);
+    }
+
+    @Test
+    void securityHeadersOn401() throws Exception {
+        HttpResponse<String> r = send("GET", "/auth/me", null, null, null);
+        assertEquals(401, r.statusCode());
+        assertSecurityHeaders(r);
+        assertEquals("application/json;charset=UTF-8", r.headers().firstValue("Content-Type").orElse(null));
+    }
+
+    @Test
+    void securityHeadersOn403() throws Exception {
+        String[] anon = anonymousSession();
+        HttpResponse<String> r = send("POST", "/auth/login", anon[0], null, LOGIN_BODY);
+        assertEquals(403, r.statusCode());
+        assertSecurityHeaders(r);
+        assertEquals("application/json;charset=UTF-8", r.headers().firstValue("Content-Type").orElse(null));
+    }
+
+    @Test
+    void hstsOnlyOverHttps() throws Exception {
+        HttpResponse<String> plain = send("GET", "/auth/csrf", null, null, null);
+        assertEquals(null, plain.headers().firstValue("Strict-Transport-Security").orElse(null));
+
+        String hsts = "max-age=31536000 ; includeSubDomains";
+        for (HttpResponse<String> r : new HttpResponse[] {
+                send("GET", "/auth/csrf", null, null, null, "https"),
+                send("GET", "/auth/me", null, null, null, "https"),
+                send("POST", "/auth/login", null, null, LOGIN_BODY, "https")}) {
+            assertHeader(r, "Strict-Transport-Security", hsts, r.uri() + " -> " + r.statusCode());
+        }
+    }
+
+    /** An anonymous 401 must not hand out a session (request cache disabled); only GET /auth/csrf does. */
+    @Test
+    void anonymousUnauthorizedDoesNotCreateSession() throws Exception {
+        assertEquals(null, setCookie(send("GET", "/auth/me", null, null, null)));
     }
 }

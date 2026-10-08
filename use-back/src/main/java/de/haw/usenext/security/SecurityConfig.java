@@ -2,6 +2,7 @@ package de.haw.usenext.security;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +27,7 @@ import org.springframework.security.web.csrf.CsrfAuthenticationStrategy;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 
 @Configuration
 public class SecurityConfig {
@@ -76,6 +78,16 @@ public class SecurityConfig {
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((req, res, e) -> writeProblem(res, HttpStatus.UNAUTHORIZED, "Not authenticated"))
                         .accessDeniedHandler((req, res, e) -> writeProblem(res, HttpStatus.FORBIDDEN, "Forbidden")))
+                // BR-13: API responses never render anything; HSTS is only written for requests that arrive over HTTPS
+                .headers(h -> h
+                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'none'; frame-ancestors 'none'"))
+                        .referrerPolicy(r -> r.policy(ReferrerPolicy.NO_REFERRER))
+                        .permissionsPolicyHeader(p -> p.policy("accelerometer=(), camera=(), geolocation=(), "
+                                + "gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()"))
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .maxAgeInSeconds(31536000)
+                                .includeSubDomains(true)))
+                .requestCache(cache -> cache.disable())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable);
@@ -85,6 +97,7 @@ public class SecurityConfig {
     private static void writeProblem(HttpServletResponse response, HttpStatus status, String title) throws IOException {
         // Constant strings only, nothing from the request is echoed, so no JSON escaping is needed.
         response.setStatus(status.value());
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write("{\"status\":" + status.value() + ",\"title\":\"" + title + "\"}");
     }
