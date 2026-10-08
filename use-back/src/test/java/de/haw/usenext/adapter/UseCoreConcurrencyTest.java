@@ -23,8 +23,8 @@ import org.tzi.use.uml.ocl.expr.Expression;
 import org.tzi.use.uml.sys.MSystem;
 
 /**
- * R-18b (b): is in-process use-core safe under parallel requests?
- * Both scenarios run the same operation (load model, evaluate one OCL expression) from N threads.
+ * Is in-process use-core safe under parallel requests? Both scenarios run the same operation from N threads:
+ * the adapter builds a separate object graph per call (asserted); sharing one graph is only documented.
  */
 class UseCoreConcurrencyTest {
 
@@ -32,17 +32,18 @@ class UseCoreConcurrencyTest {
     private static final int ITERATIONS = 100;
     private static final String MODEL = "model Test\nclass Person\nattributes\n  name : String\nend\n";
     private static final String OCL = "Person.allInstances()->size() + Set{1, 2, 3}->collect(i | i * i)->sum()";
-    private static final String EXPECTED = "14";
+    // against the fixed model of the adapter: three persons plus 1 + 4 + 9
+    private static final String ADAPTER_OCL = OCL;
+    private static final String ADAPTER_EXPECTED = "17";
 
     record Outcome(int failures, Map<String, Integer> distinctResults) { }
 
     @Test
     void separateObjectGraphPerThreadIsDeterministic() throws Exception {
         UseCoreAdapter adapter = new DefaultUseCoreAdapter();
-        Outcome outcome = runParallel(() -> adapter.evaluate(MODEL, OCL));
-        System.out.println("[R-18b] separate graph per call: " + outcome);
+        Outcome outcome = runParallel(() -> adapter.evaluate(ADAPTER_OCL));
         assertEquals(0, outcome.failures());
-        assertEquals(Map.of(EXPECTED, THREADS * ITERATIONS), outcome.distinctResults());
+        assertEquals(Map.of(ADAPTER_EXPECTED, THREADS * ITERATIONS), outcome.distinctResults());
     }
 
     @Test
@@ -56,8 +57,8 @@ class UseCoreConcurrencyTest {
                     model, shared.state(), OCL, "expr", new PrintWriter(new StringWriter()), shared.varBindings());
             return new Evaluator().eval(expr, shared.state()).toString();
         });
-        // Documented, not asserted: the result informs the adapter recommendation in REPORT.md.
-        System.out.println("[R-18b] shared graph (compile+eval): " + outcome);
+        // Documented, not asserted: shows why the adapter builds a separate object graph per call.
+        System.out.println("shared graph (compile+eval): " + outcome);
     }
 
     private static Outcome runParallel(Supplier<String> operation) throws Exception {

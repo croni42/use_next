@@ -70,13 +70,13 @@ class SessionCsrfIntegrationTest {
 
     @Test
     void fullSessionLifecycle() throws Exception {
-        // 1. anonymous: CSRF token endpoint creates a session; business endpoint is protected
+        // 1. anonymous: CSRF token endpoint creates a session; the protected endpoint rejects it
         HttpResponse<String> csrfResponse = send("GET", "/auth/csrf", null, null, null);
         assertEquals(200, csrfResponse.statusCode());
         String preLoginCookie = setCookie(csrfResponse);
         String preLoginSession = sessionId(preLoginCookie);
         String csrf = token(csrfResponse);
-        assertEquals(401, send("GET", "/models/health", preLoginSession, null, null).statusCode());
+        assertEquals(401, send("GET", "/auth/me", preLoginSession, null, null).statusCode());
 
         // 2. POST without CSRF token -> 403, with wrong credentials -> 401
         assertEquals(403, send("POST", "/auth/login", preLoginSession, null, LOGIN_BODY).statusCode());
@@ -94,11 +94,11 @@ class SessionCsrfIntegrationTest {
         String postLoginSession = sessionId(loginCookie);
         assertNotEquals(preLoginSession, postLoginSession);
 
-        // 4. the old session ID is dead, the new one reaches the business endpoint (use-core evaluates 1+4+9)
-        assertEquals(401, send("GET", "/models/health", preLoginSession, null, null).statusCode());
-        HttpResponse<String> health = send("GET", "/models/health", postLoginSession, null, null);
-        assertEquals(200, health.statusCode());
-        assertTrue(health.body().contains("14"), health.body());
+        // 4. the old session ID is dead, the new one reaches the protected endpoint
+        assertEquals(401, send("GET", "/auth/me", preLoginSession, null, null).statusCode());
+        HttpResponse<String> me = send("GET", "/auth/me", postLoginSession, null, null);
+        assertEquals(200, me.statusCode());
+        assertTrue(me.body().contains("lasse"), me.body());
 
         // 5. CSRF token was rotated with the login; fetch the current one for the session
         String csrfAfterLogin = token(send("GET", "/auth/csrf", postLoginSession, null, null));
@@ -107,7 +107,7 @@ class SessionCsrfIntegrationTest {
         // 6. logout needs the token (403 without), then invalidates the server-side session
         assertEquals(403, send("POST", "/auth/logout", postLoginSession, null, null).statusCode());
         assertEquals(204, send("POST", "/auth/logout", postLoginSession, csrfAfterLogin, null).statusCode());
-        assertEquals(401, send("GET", "/models/health", postLoginSession, null, null).statusCode());
+        assertEquals(401, send("GET", "/auth/me", postLoginSession, null, null).statusCode());
     }
 
     /** Anonymous session plus its CSRF token, as the UI obtains them before the first login. */

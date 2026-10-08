@@ -1,0 +1,20 @@
+new Company('acme')
+acme.name := 'Acme Corp'
+new Person('alice')
+alice.name := 'Alice'
+alice.age := 34
+alice.salary := 5200.0
+alice.role := #Developer
+new Person('bob')
+bob.name := 'Bob'
+bob.age := 41
+bob.salary := 6100.0
+bob.role := #Manager
+new Person('carol')
+carol.name := 'Carol'
+carol.age := 29
+carol.salary := 4800.0
+carol.role := #Tester
+insert (acme, alice) into Employment
+insert (acme, bob) into Employment
+insert (acme, carol) into Employment

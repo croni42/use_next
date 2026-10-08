@@ -75,22 +75,49 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-  /models/health:
-    get:
-      operationId: getModelsHealth
-      tags: [models]
-      summary: Placeholder business endpoint; evaluates one OCL expression via use-core
+  /ocl/evaluate:
+    post:
+      operationId: evaluateOcl
+      tags: [ocl]
+      summary: Evaluates an OCL expression against the fixed server-side model
       security:
         - sessionCookie: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OclEvaluationRequest'
       responses:
         '200':
-          description: Health information
+          description: Evaluation result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ModelsHealth'
+                $ref: '#/components/schemas/OclEvaluationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          description: The expression does not compile or its evaluation failed; detail carries a sanitised message
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '503':
+          description: Evaluation exceeded the time limit or the server is busy
+          headers:
+            Retry-After:
+              description: Seconds to wait before retrying
+              schema:
+                type: integer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Problem'
 components:
   securitySchemes:
     sessionCookie:
@@ -144,14 +171,22 @@ components:
       properties:
         username:
           type: string
-    ModelsHealth:
+    OclEvaluationRequest:
       type: object
-      required: [status, oclResult]
+      required: [expression]
       properties:
-        status:
+        expression:
           type: string
-        oclResult:
+          minLength: 1
+          maxLength: 1000
+    OclEvaluationResult:
+      type: object
+      required: [result]
+      properties:
+        result:
           type: string
+          maxLength: 10000
+          description: Result in USE notation; longer results are cut off server-side
     Problem:
       type: object
       required: [status, title]
@@ -160,3 +195,7 @@ components:
           type: integer
         title:
           type: string
+        detail:
+          type: string
+          maxLength: 500
+          description: Plain-text, sanitised explanation; never contains stack traces, paths or class names
