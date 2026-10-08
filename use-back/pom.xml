@@ -67,6 +67,24 @@
 		</dependency>
 	</dependencies>
 
+	<profiles>
+		<!-- Packages the production build of use-web (run "npm run build" in use-web first) as static files. -->
+		<profile>
+			<id>with-frontend</id>
+			<build>
+				<resources>
+					<resource>
+						<directory>src/main/resources</directory>
+					</resource>
+					<resource>
+						<directory>${project.basedir}/../use-web/dist</directory>
+						<targetPath>static</targetPath>
+					</resource>
+				</resources>
+			</build>
+		</profile>
+	</profiles>
+
 	<build>
 		<plugins>
 			<plugin>

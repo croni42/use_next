@@ -192,6 +192,8 @@ class SessionCsrfIntegrationTest {
         assertHeader(r, "Cache-Control", "no-cache, no-store, max-age=0, must-revalidate", where);
         assertHeader(r, "Referrer-Policy", "no-referrer", where);
         assertHeader(r, "Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'", where);
+        assertHeader(r, "Cross-Origin-Opener-Policy", "same-origin", where);
+        assertHeader(r, "Cross-Origin-Resource-Policy", "same-origin", where);
         assertHeader(r, "Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), "
                 + "magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()", where);
     }

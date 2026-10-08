@@ -13,7 +13,14 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.header.writers.CrossOriginOpenerPolicyHeaderWriter.CrossOriginOpenerPolicy;
+import org.springframework.security.web.header.writers.CrossOriginResourcePolicyHeaderWriter.CrossOriginResourcePolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -63,35 +70,79 @@ public class SecurityConfig {
                 new CsrfAuthenticationStrategy(csrfTokenRepository)));
     }
 
+    /** BR-13: API responses never render anything. */
+    static final String API_CSP = "default-src 'none'; frame-ancestors 'none'";
+
+    /**
+     * BR-13/FR-14: policy for the production build of use-web, which is served same-origin by this application.
+     * No inline code, no eval, no data: URIs; Trusted Types is required and no policy may be created.
+     */
+    static final String FRONTEND_CSP = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; "
+            + "font-src 'self'; connect-src 'self'; manifest-src 'self'; base-uri 'none'; form-action 'self'; "
+            + "frame-ancestors 'none'; object-src 'none'; require-trusted-types-for 'script'; trusted-types 'none'";
+
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http, CsrfTokenRepository csrfTokenRepository) throws Exception {
+    @Order(1)
+    SecurityFilterChain apiFilterChain(HttpSecurity http, CsrfTokenRepository csrfTokenRepository) throws Exception {
         http
+                .securityMatcher("/api/**")
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository)
-                        // plain handler: the token from GET /auth/csrf is sent back unchanged in the header
+                        // plain handler: the token from GET /api/auth/csrf is sent back unchanged in the header
                         .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .authorizeHttpRequests(auth -> auth
-                        // /error must be open, otherwise the container error dispatch of a 403 is turned into a 401
-                        .requestMatchers("/auth/csrf", "/auth/login", "/error").permitAll()
+                        .requestMatchers("/api/auth/csrf", "/api/auth/login").permitAll()
                         .anyRequest().authenticated())
-                // Spec: 401 and 403 carry a minimal Problem body (BR-12), without any detail
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint((req, res, e) -> writeProblem(res, HttpStatus.UNAUTHORIZED, "Not authenticated"))
-                        .accessDeniedHandler((req, res, e) -> writeProblem(res, HttpStatus.FORBIDDEN, "Forbidden")))
-                // BR-13: API responses never render anything; HSTS is only written for requests that arrive over HTTPS
-                .headers(h -> h
-                        .contentSecurityPolicy(csp -> csp.policyDirectives("default-src 'none'; frame-ancestors 'none'"))
-                        .referrerPolicy(r -> r.policy(ReferrerPolicy.NO_REFERRER))
-                        .permissionsPolicyHeader(p -> p.policy("accelerometer=(), camera=(), geolocation=(), "
-                                + "gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()"))
-                        .httpStrictTransportSecurity(hsts -> hsts
-                                .maxAgeInSeconds(31536000)
-                                .includeSubDomains(true)))
+                .exceptionHandling(ex -> problemResponses(ex))
+                .headers(h -> commonHeaders(h, API_CSP))
+                // An anonymous request has no session, so there is nothing to restore after a login: the request
+                // cache would only create a JSESSIONID on the 401.
                 .requestCache(cache -> cache.disable())
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable);
         return http.build();
+    }
+
+    /** Static files of the use-web build and the container error dispatch: read-only, no session, no CSRF. */
+    @Bean
+    @Order(2)
+    SecurityFilterChain frontendFilterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(AbstractHttpConfigurer::disable)
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // /error must be open, otherwise the container error dispatch of a 403/404 is turned into a 401
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/**").permitAll()
+                        .requestMatchers(HttpMethod.HEAD, "/**").permitAll()
+                        .anyRequest().denyAll())
+                .exceptionHandling(ex -> problemResponses(ex))
+                .headers(h -> commonHeaders(h, FRONTEND_CSP))
+                .requestCache(cache -> cache.disable())
+                .formLogin(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable);
+        return http.build();
+    }
+
+    /** Spec: 401 and 403 carry a minimal Problem body (BR-12), without any detail. */
+    private static void problemResponses(ExceptionHandlingConfigurer<HttpSecurity> ex) {
+        ex.authenticationEntryPoint((req, res, e) -> writeProblem(res, HttpStatus.UNAUTHORIZED, "Not authenticated"))
+                .accessDeniedHandler((req, res, e) -> writeProblem(res, HttpStatus.FORBIDDEN, "Forbidden"));
+    }
+
+    /** Headers shared by both chains; only the Content-Security-Policy differs. HSTS is written for HTTPS requests only. */
+    private static void commonHeaders(HeadersConfigurer<HttpSecurity> h, String csp) {
+        h.contentSecurityPolicy(c -> c.policyDirectives(csp))
+                .referrerPolicy(r -> r.policy(ReferrerPolicy.NO_REFERRER))
+                .permissionsPolicyHeader(p -> p.policy("accelerometer=(), camera=(), geolocation=(), "
+                        + "gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()"))
+                .crossOriginOpenerPolicy(c -> c.policy(CrossOriginOpenerPolicy.SAME_ORIGIN))
+                .crossOriginResourcePolicy(c -> c.policy(CrossOriginResourcePolicy.SAME_ORIGIN))
+                .httpStrictTransportSecurity(hsts -> hsts
+                        .maxAgeInSeconds(31536000)
+                        .includeSubDomains(true));
     }
 
     private static void writeProblem(HttpServletResponse response, HttpStatus status, String title) throws IOException {
