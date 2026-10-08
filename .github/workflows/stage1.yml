@@ -31,6 +31,9 @@ jobs:
       - run: bash scripts/install-use-core.sh --force
       - run: ./mvnw -B verify
         working-directory: use-back
+      - name: Test report
+        if: always()
+        run: bash scripts/ci-summary.sh tests "Backend tests" use-back/target/surefire-reports/TEST-*.xml >> "$GITHUB_STEP_SUMMARY"
 
   frontend:
     runs-on: ubuntu-24.04
@@ -46,14 +49,28 @@ jobs:
           cache-dependency-path: use-web/package-lock.json
       - run: npm ci
         working-directory: use-web
-      - run: npm test
+      - run: npm test -- --reporter=default --reporter=junit --outputFile.junit=test-results/junit.xml
         working-directory: use-web
+      - name: Test report
+        if: always()
+        run: bash scripts/ci-summary.sh tests "Frontend tests" use-web/test-results/junit.xml >> "$GITHUB_STEP_SUMMARY"
       - run: npm run lint
         working-directory: use-web
       - run: npm run format:check
         working-directory: use-web
       - run: npm run build
         working-directory: use-web
+      - name: Result
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo "## Frontend checks"
+            echo
+            echo "**$JOB_STATUS** - eslint, Prettier and production build"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
 
   drift:
     runs-on: ubuntu-24.04
@@ -72,6 +89,17 @@ jobs:
           cache: npm
           cache-dependency-path: use-web/package-lock.json
       - run: bash scripts/check-drift.sh
+      - name: Result
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo "## API client drift"
+            echo
+            echo "**$JOB_STATUS** - committed client matches openapi/openapi.yaml"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
 
   openapi-lint:
     runs-on: ubuntu-24.04
@@ -89,6 +117,17 @@ jobs:
         working-directory: use-web
       - run: npm run lint:api
         working-directory: use-web
+      - name: Result
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo "## OpenAPI lint"
+            echo
+            echo "**$JOB_STATUS** - Spectral ruleset openapi/.spectral.yaml"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
 
   # CI-only tools below: pinned release binaries, verified against the SHA-256 recorded here
   # (taken from the release's checksum file). They need no token, key or account.
@@ -126,6 +165,17 @@ jobs:
             *) base="origin/main" ;;
           esac
           bash scripts/check-breaking.sh "$base"
+      - name: Result
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo "## Breaking API changes"
+            echo
+            echo "**$JOB_STATUS** - oasdiff comparison against the base"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
 
   osv-scanner:
     runs-on: ubuntu-24.04
@@ -143,7 +193,20 @@ jobs:
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
       # --no-resolve: only the dependencies declared in pom.xml are checked; the transitive Maven
       # resolution cannot run because use-core is not in Maven Central.
-      - run: osv-scanner scan source --config=osv-scanner.toml --no-resolve -L use-back/pom.xml -L use-web/package-lock.json
+      - name: Scan
+        run: osv-scanner scan source --config=osv-scanner.toml --no-resolve -L use-back/pom.xml -L use-web/package-lock.json 2>&1 | tee osv-result.txt
+      - name: Scan report
+        if: always()
+        run: |
+          {
+            echo "## OSV-Scanner"
+            echo
+            echo '```text'
+            cat osv-result.txt 2>/dev/null || echo "No scan output."
+            echo '```'
+            echo
+            bash scripts/ci-summary.sh exceptions osv-scanner.toml
+          } >> "$GITHUB_STEP_SUMMARY"
 
   gitleaks:
     runs-on: ubuntu-24.04
@@ -161,3 +224,14 @@ jobs:
           tar -xzf gitleaks.tar.gz -C "$RUNNER_TEMP/bin" gitleaks
           echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
       - run: gitleaks git --redact --no-banner .
+      - name: Result
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo "## Secret scan"
+            echo
+            echo "**$JOB_STATUS** - gitleaks over the full git history"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
