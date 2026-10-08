@@ -85,3 +85,36 @@ button:disabled {
   margin-top: 0.5rem;
   color: var(--error);
 }
+
+.card.wide {
+  max-width: 40rem;
+}
+
+textarea {
+  padding: 0.5rem;
+  font: 0.9rem/1.4 ui-monospace, 'Cascadia Code', Consolas, monospace;
+  color: inherit;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  resize: vertical;
+}
+
+.outcome {
+  min-height: 1.5em;
+}
+
+pre {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+h2 {
+  margin: 1rem 0 0;
+  font-size: 1.1rem;
+}

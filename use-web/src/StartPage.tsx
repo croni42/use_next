@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import OclEvaluator from './OclEvaluator';
 
 type Props = {
   username: string;
@@ -14,12 +15,13 @@ export default function StartPage({ username, onLogout }: Props) {
   }
 
   return (
-    <main className="card">
+    <main className="card wide">
       <h1>USE_NEXT</h1>
       <p>
         Signed in as <strong>{username}</strong>
       </p>
-      <p>This is the start page of the USE_NEXT prototype. Model functions will follow here.</p>
+      <p>Evaluate an OCL expression against the fixed example model (persons, a company and their employment).</p>
+      <OclEvaluator />
       <button type="button" onClick={handleLogout} disabled={pending}>
         Log out
       </button>

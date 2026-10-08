@@ -1,4 +1,4 @@
-import { AuthApi, Configuration, ModelsApi, ResponseError } from './api';
+import { AuthApi, Configuration, OclApi, ResponseError } from './api';
 import type { Middleware, RequestContext, ResponseContext, UserInfo } from './api';
 
 /**
@@ -71,7 +71,7 @@ const middleware: Middleware = {
 const configuration = new Configuration({ credentials: 'include', middleware: [middleware] });
 
 const authApi = new AuthApi(configuration);
-export const modelsApi = new ModelsApi(configuration);
+const oclApi = new OclApi(configuration);
 
 export function getCurrentUser(): Promise<UserInfo> {
   return authApi.getCurrentUser();
@@ -91,6 +91,30 @@ export async function logout(): Promise<void> {
     await authApi.logout();
   } finally {
     resetCsrfToken();
+  }
+}
+
+export async function evaluateOcl(expression: string): Promise<string> {
+  const { result } = await oclApi.evaluateOcl({ oclEvaluationRequest: { expression } });
+  return result;
+}
+
+/** The HTTP status of a failed call, or undefined when the request itself failed (e.g. network). */
+export function errorStatus(error: unknown): number | undefined {
+  return error instanceof ResponseError ? error.response.status : undefined;
+}
+
+/** The plain-text `detail` of a Problem response, if the server sent one. Never interpreted as markup. */
+export async function problemDetail(error: unknown): Promise<string | undefined> {
+  if (!(error instanceof ResponseError)) {
+    return undefined;
+  }
+  try {
+    const body: unknown = await error.response.clone().json();
+    const detail = (body as { detail?: unknown } | null)?.detail;
+    return typeof detail === 'string' && detail.trim() !== '' ? detail : undefined;
+  } catch {
+    return undefined;
   }
 }
 

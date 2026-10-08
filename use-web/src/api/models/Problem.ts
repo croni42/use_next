@@ -27,6 +27,10 @@ export interface Problem {
      * 
      */
     title: string;
+    /**
+     * Plain-text, sanitised explanation; never contains stack traces, paths or class names
+     */
+    detail?: string;
 }
 
 /**
@@ -50,6 +54,7 @@ export function ProblemFromJSONTyped(json: any, ignoreDiscriminator: boolean): P
         
         'status': json['status'],
         'title': json['title'],
+        'detail': json['detail'] == null ? undefined : json['detail'],
     };
 }
 
@@ -66,6 +71,7 @@ export function ProblemToJSONTyped(value?: Problem | null, ignoreDiscriminator: 
         
         'status': value['status'],
         'title': value['title'],
+        'detail': value['detail'],
     };
 }
 
