@@ -1,5 +1,6 @@
 package de.haw.usenext.security;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +32,7 @@ import org.springframework.security.web.authentication.session.ChangeSessionIdAu
 import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.csrf.CsrfAuthenticationStrategy;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.csrf.HttpSessionCsrfTokenRepository;
@@ -60,7 +62,27 @@ public class SecurityConfig {
 
     @Bean
     CsrfTokenRepository csrfTokenRepository() {
-        return new HttpSessionCsrfTokenRepository();
+        var sessions = new HttpSessionCsrfTokenRepository();
+        // CsrfFilter generates and saves a token for every request, which would open a session for an anonymous 403.
+        // Only GET /api/auth/csrf and requests that already have a session may create or change the stored token.
+        return new CsrfTokenRepository() {
+            @Override
+            public CsrfToken generateToken(HttpServletRequest request) {
+                return sessions.generateToken(request);
+            }
+
+            @Override
+            public void saveToken(CsrfToken token, HttpServletRequest request, HttpServletResponse response) {
+                if (request.getSession(false) != null || "/api/auth/csrf".equals(request.getRequestURI())) {
+                    sessions.saveToken(token, request, response);
+                }
+            }
+
+            @Override
+            public CsrfToken loadToken(HttpServletRequest request) {
+                return sessions.loadToken(request);
+            }
+        };
     }
 
     @Bean

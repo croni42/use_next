@@ -245,4 +245,12 @@ class SessionCsrfIntegrationTest {
     void anonymousUnauthorizedDoesNotCreateSession() throws Exception {
         assertEquals(null, setCookie(send("GET", "/auth/me", null, null, null)));
     }
+
+    /** A rejected POST without any session must not hand out one (the CSRF filter must not persist a token). */
+    @Test
+    void anonymousForbiddenDoesNotCreateSession() throws Exception {
+        HttpResponse<String> r = send("POST", "/auth/login", null, null, LOGIN_BODY);
+        assertEquals(403, r.statusCode());
+        assertEquals(null, setCookie(r));
+    }
 }
