@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="PoC use-web" type="js.build_tools.npm">
-    <package-json value="$PROJECT_DIR$/poc/use-web/package.json" />
+  <configuration default="false" name="use-web" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/use-web/package.json" />
     <command value="run" />
     <scripts>
       <script value="dev" />

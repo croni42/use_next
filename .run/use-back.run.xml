@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="PoC use-back" type="MavenRunConfiguration" factoryName="Maven">
+  <configuration default="false" name="use-back" type="MavenRunConfiguration" factoryName="Maven">
     <MavenSettings>
       <option name="myGeneralSettings" />
       <option name="myRunnerSettings" />
@@ -13,13 +13,13 @@
               <option value="spring-boot:run" />
             </list>
           </option>
-          <option name="multimoduleDir" value="$PROJECT_DIR$/poc/use-back" />
+          <option name="multimoduleDir" value="$PROJECT_DIR$/use-back" />
           <option name="pomFileName" />
           <option name="profilesMap">
             <map />
           </option>
           <option name="resolveToWorkspace" value="false" />
-          <option name="workingDirPath" value="$PROJECT_DIR$/poc/use-back" />
+          <option name="workingDirPath" value="$PROJECT_DIR$/use-back" />
         </MavenRunnerParameters>
       </option>
     </MavenSettings>
