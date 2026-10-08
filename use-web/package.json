@@ -11,6 +11,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:api": "spectral lint ../openapi/openapi.yaml --ruleset ../openapi/.spectral.yaml --fail-severity=warn",
+    "format": "prettier --write . ../openapi ../.github",
+    "format:check": "prettier --check . ../openapi ../.github",
     "preview": "vite preview",
     "test": "vitest run",
     "generate:api": "openapi-generator-cli generate -c openapi-generator.config.json"
@@ -34,6 +36,7 @@
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "7.1.1",
     "jsdom": "30.1.2",
+    "prettier": "3.9.9",
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.1",
     "vite": "8.3.3",
