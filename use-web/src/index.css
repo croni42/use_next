@@ -5,7 +5,11 @@
   --accent: #0b5cad;
   --error: #b42318;
 
-  font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+  font:
+    16px/1.5 system-ui,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   color-scheme: light dark;
   color: var(--text);
   background: var(--bg);
@@ -92,7 +96,11 @@ button:disabled {
 
 textarea {
   padding: 0.5rem;
-  font: 0.9rem/1.4 ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font:
+    0.9rem/1.4 ui-monospace,
+    'Cascadia Code',
+    Consolas,
+    monospace;
   color: inherit;
   background: transparent;
   border: 1px solid var(--border);

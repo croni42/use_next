@@ -5,12 +5,17 @@ import { errorStatus, evaluateOcl, problemDetail } from './api-client';
 // Mirrors maxLength of OclEvaluationRequest in openapi.yaml; the backend enforces it, this only helps the user.
 const MAX_EXPRESSION = 1000;
 
-const MESSAGE_INVALID = 'The request was invalid. Check the length of the expression.';
+const MESSAGE_INVALID =
+  'The request was invalid. Check the length of the expression.';
 const MESSAGE_REJECTED = 'The expression is not valid.';
-const MESSAGE_UNAVAILABLE = 'The evaluation took too long or the server is busy. Try a simpler expression or try again later.';
+const MESSAGE_UNAVAILABLE =
+  'The evaluation took too long or the server is busy. Try a simpler expression or try again later.';
 const MESSAGE_ERROR = 'Something went wrong. Please try again.';
 
-type Outcome = { kind: 'none' } | { kind: 'result'; text: string } | { kind: 'error'; text: string };
+type Outcome =
+  | { kind: 'none' }
+  | { kind: 'result'; text: string }
+  | { kind: 'error'; text: string };
 
 async function describeFailure(error: unknown): Promise<string> {
   switch (errorStatus(error)) {
@@ -38,7 +43,11 @@ export default function OclEvaluator() {
       setOutcome({ kind: 'result', text: await evaluateOcl(expression) });
     } catch (e) {
       // A 401 is handled centrally (back to the login page); there is nothing to show here.
-      setOutcome(errorStatus(e) === 401 ? { kind: 'none' } : { kind: 'error', text: await describeFailure(e) });
+      setOutcome(
+        errorStatus(e) === 401
+          ? { kind: 'none' }
+          : { kind: 'error', text: await describeFailure(e) },
+      );
     } finally {
       setPending(false);
     }

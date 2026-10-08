@@ -12,7 +12,7 @@ rules:
   operation-tags: error
 
   usenext-security-explicit:
-    description: Every operation declares its security requirement explicitly; public operations use `security: []`.
+    description: "Every operation declares its security requirement explicitly; public operations use `security: []`."
     message: "BR-08: operation must declare `security` (use `security: []` only for deliberately public operations)."
     severity: error
     given: $.paths[*][get,put,post,delete,patch]

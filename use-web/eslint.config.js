@@ -7,19 +7,25 @@ import tseslint from 'typescript-eslint';
 // The generated client in src/api is excluded (ADR-010).
 const unsafeDomSinks = [
   {
-    selector: "AssignmentExpression[left.property.name=/^(innerHTML|outerHTML)$/]",
-    message: 'Do not assign innerHTML/outerHTML; render through React or a dedicated sanitisation component (FR-15, FR-16).',
+    selector:
+      'AssignmentExpression[left.property.name=/^(innerHTML|outerHTML)$/]',
+    message:
+      'Do not assign innerHTML/outerHTML; render through React or a dedicated sanitisation component (FR-15, FR-16).',
   },
   {
-    selector: "CallExpression[callee.property.name=/^(write|writeln|insertAdjacentHTML)$/]",
+    selector:
+      'CallExpression[callee.property.name=/^(write|writeln|insertAdjacentHTML)$/]',
     message: 'Do not use document.write/writeln or insertAdjacentHTML (FR-15).',
   },
 ];
 
-const httpGlobals = ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource'].map((name) => ({
-  name,
-  message: 'HTTP access belongs in the communication layer (src/api-client.ts) (FR-02, FR-03, FR-09).',
-}));
+const httpGlobals = ['fetch', 'XMLHttpRequest', 'WebSocket', 'EventSource'].map(
+  (name) => ({
+    name,
+    message:
+      'HTTP access belongs in the communication layer (src/api-client.ts) (FR-02, FR-03, FR-09).',
+  }),
+);
 
 export default tseslint.config(
   { ignores: ['dist', 'src/api/**'] },
@@ -47,7 +53,8 @@ export default tseslint.config(
           patterns: [
             {
               group: ['**/api', '**/api/*'],
-              message: 'Import the generated client only in src/api-client.ts; everything else uses api-client (FR-01, FR-02, FR-03).',
+              message:
+                'Import the generated client only in src/api-client.ts; everything else uses api-client (FR-01, FR-02, FR-03).',
             },
           ],
         },

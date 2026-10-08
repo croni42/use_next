@@ -16,11 +16,16 @@ const mocked = vi.mocked(client);
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocked.isUnauthorized.mockImplementation((error) => (error as { status?: number })?.status === 401);
+  mocked.isUnauthorized.mockImplementation(
+    (error) => (error as { status?: number })?.status === 401,
+  );
 });
 afterEach(cleanup);
 
-async function fillAndSubmit(user: ReturnType<typeof userEvent.setup>, password = 'secret') {
+async function fillAndSubmit(
+  user: ReturnType<typeof userEvent.setup>,
+  password = 'secret',
+) {
   await user.type(screen.getByLabelText('Username'), 'lasse');
   await user.type(screen.getByLabelText('Password'), password);
   await user.click(screen.getByRole('button', { name: 'Sign in' }));
@@ -31,7 +36,9 @@ describe('App', () => {
     mocked.getCurrentUser.mockRejectedValue({ status: 401 });
     render(<App />);
     expect(await screen.findByLabelText('Username')).toBeTruthy();
-    expect((screen.getByLabelText('Password') as HTMLInputElement).type).toBe('password');
+    expect((screen.getByLabelText('Password') as HTMLInputElement).type).toBe(
+      'password',
+    );
   });
 
   it('shows the start page with the user when a session exists', async () => {
@@ -49,7 +56,9 @@ describe('App', () => {
     await screen.findByLabelText('Username');
     await fillAndSubmit(user);
     expect((await screen.findByRole('alert')).textContent).toBe('Login failed');
-    expect((screen.getByLabelText('Password') as HTMLInputElement).value).toBe('');
+    expect((screen.getByLabelText('Password') as HTMLInputElement).value).toBe(
+      '',
+    );
   });
 
   it('shows a different generic message when the request itself fails', async () => {
@@ -72,7 +81,9 @@ describe('App', () => {
     render(<App />);
     await screen.findByLabelText('Username');
     await fillAndSubmit(user);
-    expect((screen.getByRole('button') as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button') as HTMLButtonElement).disabled).toBe(
+      true,
+    );
     finish({ username: 'lasse' });
     expect(await screen.findByText('lasse')).toBeTruthy();
   });

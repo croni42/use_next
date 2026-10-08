@@ -2,8 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { evaluateOcl, login, setUnauthorizedHandler } from './api-client';
 
 const json = (status: number, body: unknown) =>
-  new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-const csrf = (token: string) => json(200, { headerName: 'X-CSRF-TOKEN', token });
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
+const csrf = (token: string) =>
+  json(200, { headerName: 'X-CSRF-TOKEN', token });
 
 let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -38,7 +42,9 @@ describe('api-client', () => {
     await expect(login('lasse', 'pw')).resolves.toEqual({ username: 'lasse' });
     expect(fetchMock).toHaveBeenCalledTimes(4);
     const retry = fetchMock.mock.calls[3] as [string, RequestInit];
-    expect((retry[1].headers as Record<string, string>)['X-CSRF-TOKEN']).toBe('fresh');
+    expect((retry[1].headers as Record<string, string>)['X-CSRF-TOKEN']).toBe(
+      'fresh',
+    );
   });
 
   it('gives up after one retry when the 403 persists', async () => {
@@ -58,7 +64,9 @@ describe('api-client', () => {
       .mockResolvedValueOnce(csrf('stale'))
       .mockResolvedValueOnce(json(403, { status: 403, title: 'Forbidden' }))
       .mockResolvedValueOnce(csrf('fresh'))
-      .mockResolvedValueOnce(json(401, { status: 401, title: 'Not authenticated' }));
+      .mockResolvedValueOnce(
+        json(401, { status: 401, title: 'Not authenticated' }),
+      );
     await expect(evaluateOcl('1')).rejects.toBeDefined();
     expect(handler).toHaveBeenCalledOnce();
   });
@@ -66,7 +74,9 @@ describe('api-client', () => {
   it('does not treat a failed login as an expired session', async () => {
     const handler = vi.fn();
     setUnauthorizedHandler(handler);
-    fetchMock.mockResolvedValueOnce(csrf('t')).mockResolvedValueOnce(json(401, { status: 401, title: 'Login failed' }));
+    fetchMock
+      .mockResolvedValueOnce(csrf('t'))
+      .mockResolvedValueOnce(json(401, { status: 401, title: 'Login failed' }));
     await expect(login('lasse', 'bad')).rejects.toBeDefined();
     expect(handler).not.toHaveBeenCalled();
   });

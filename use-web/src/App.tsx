@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
-import { getCurrentUser, login, logout, setUnauthorizedHandler } from './api-client';
+import {
+  getCurrentUser,
+  login,
+  logout,
+  setUnauthorizedHandler,
+} from './api-client';
 import LoginPage from './LoginPage';
 import StartPage from './StartPage';
 
 // The session itself lives in the HttpOnly cookie; the UI only mirrors the user name for display.
-type Session = { status: 'loading' } | { status: 'anonymous' } | { status: 'authenticated'; username: string };
+type Session =
+  | { status: 'loading' }
+  | { status: 'anonymous' }
+  | { status: 'authenticated'; username: string };
 
 export default function App() {
   const [session, setSession] = useState<Session>({ status: 'loading' });
@@ -14,7 +22,9 @@ export default function App() {
     setUnauthorizedHandler(() => setSession({ status: 'anonymous' }));
     let active = true;
     getCurrentUser().then(
-      (user) => active && setSession({ status: 'authenticated', username: user.username }),
+      (user) =>
+        active &&
+        setSession({ status: 'authenticated', username: user.username }),
       () => active && setSession({ status: 'anonymous' }),
     );
     return () => {

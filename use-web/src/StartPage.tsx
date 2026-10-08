@@ -20,7 +20,10 @@ export default function StartPage({ username, onLogout }: Props) {
       <p>
         Signed in as <strong>{username}</strong>
       </p>
-      <p>Evaluate an OCL expression against the fixed example model (persons, a company and their employment).</p>
+      <p>
+        Evaluate an OCL expression against the fixed example model (persons, a
+        company and their employment).
+      </p>
       <OclEvaluator />
       <button type="button" onClick={handleLogout} disabled={pending}>
         Log out

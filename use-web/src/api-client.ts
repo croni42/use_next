@@ -1,5 +1,10 @@
 import { AuthApi, Configuration, OclApi, ResponseError } from './api';
-import type { Middleware, RequestContext, ResponseContext, UserInfo } from './api';
+import type {
+  Middleware,
+  RequestContext,
+  ResponseContext,
+  UserInfo,
+} from './api';
 
 /**
  * The one central place for cross-cutting API client behaviour (ADR-008 / ADR-010):
@@ -42,8 +47,17 @@ function isMutating(init: RequestInit): boolean {
   return MUTATING_METHODS.has((init.method ?? 'GET').toUpperCase());
 }
 
-function withCsrfHeader(init: RequestInit, { headerName, token }: CsrfToken): RequestInit {
-  return { ...init, headers: { ...(init.headers as Record<string, string>), [headerName]: token } };
+function withCsrfHeader(
+  init: RequestInit,
+  { headerName, token }: CsrfToken,
+): RequestInit {
+  return {
+    ...init,
+    headers: {
+      ...(init.headers as Record<string, string>),
+      [headerName]: token,
+    },
+  };
 }
 
 const middleware: Middleware = {
@@ -51,7 +65,10 @@ const middleware: Middleware = {
     if (!isMutating(context.init)) {
       return undefined;
     }
-    return { url: context.url, init: withCsrfHeader(context.init, await loadCsrfToken()) };
+    return {
+      url: context.url,
+      init: withCsrfHeader(context.init, await loadCsrfToken()),
+    };
   },
 
   async post(context: ResponseContext) {
@@ -60,7 +77,10 @@ const middleware: Middleware = {
       // Stale CSRF token: fetch a fresh one and repeat the request once. The retry uses the plain fetch
       // (context.fetch would run the middleware again and could loop); init already carries the credentials.
       resetCsrfToken();
-      response = await fetch(context.url, withCsrfHeader(context.init, await loadCsrfToken()));
+      response = await fetch(
+        context.url,
+        withCsrfHeader(context.init, await loadCsrfToken()),
+      );
     }
     // Also checked after the retry: once the session has expired the first answer is a 403, the repeat a 401.
     if (response.status === 401 && !context.url.endsWith(LOGIN_PATH)) {
@@ -70,7 +90,10 @@ const middleware: Middleware = {
   },
 };
 
-const configuration = new Configuration({ credentials: 'include', middleware: [middleware] });
+const configuration = new Configuration({
+  credentials: 'include',
+  middleware: [middleware],
+});
 
 const authApi = new AuthApi(configuration);
 const oclApi = new OclApi(configuration);
@@ -79,7 +102,10 @@ export function getCurrentUser(): Promise<UserInfo> {
   return authApi.getCurrentUser();
 }
 
-export async function login(username: string, password: string): Promise<UserInfo> {
+export async function login(
+  username: string,
+  password: string,
+): Promise<UserInfo> {
   resetCsrfToken();
   try {
     return await authApi.login({ loginRequest: { username, password } });
@@ -97,7 +123,9 @@ export async function logout(): Promise<void> {
 }
 
 export async function evaluateOcl(expression: string): Promise<string> {
-  const { result } = await oclApi.evaluateOcl({ oclEvaluationRequest: { expression } });
+  const { result } = await oclApi.evaluateOcl({
+    oclEvaluationRequest: { expression },
+  });
   return result;
 }
 
@@ -107,14 +135,18 @@ export function errorStatus(error: unknown): number | undefined {
 }
 
 /** The plain-text `detail` of a Problem response, if the server sent one. Never interpreted as markup. */
-export async function problemDetail(error: unknown): Promise<string | undefined> {
+export async function problemDetail(
+  error: unknown,
+): Promise<string | undefined> {
   if (!(error instanceof ResponseError)) {
     return undefined;
   }
   try {
     const body: unknown = await error.response.clone().json();
     const detail = (body as { detail?: unknown } | null)?.detail;
-    return typeof detail === 'string' && detail.trim() !== '' ? detail : undefined;
+    return typeof detail === 'string' && detail.trim() !== ''
+      ? detail
+      : undefined;
   } catch {
     return undefined;
   }
