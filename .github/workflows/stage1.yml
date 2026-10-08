@@ -60,6 +60,8 @@ jobs:
         working-directory: use-web
       - run: npm run build
         working-directory: use-web
+      - name: CSP build check
+        run: node scripts/check-csp-build.mjs
       - name: Result
         if: always()
         env:
@@ -68,7 +70,7 @@ jobs:
           {
             echo "## Frontend checks"
             echo
-            echo "**$JOB_STATUS** - eslint, Prettier and production build"
+            echo "**$JOB_STATUS** - eslint, Prettier, production build and CSP build check"
             echo
           } >> "$GITHUB_STEP_SUMMARY"
 

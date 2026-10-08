@@ -6,6 +6,10 @@ import react from '@vitejs/plugin-react';
 // on http://localhost (a "potentially trustworthy" origin).
 export default defineConfig({
   plugins: [react()],
+  build: {
+    // The production CSP has no data: source, so assets are never inlined as data URIs.
+    assetsInlineLimit: 0,
+  },
   test: {
     environment: 'jsdom',
   },

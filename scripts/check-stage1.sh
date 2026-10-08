@@ -32,6 +32,8 @@ step "frontend: npm run format:check"
 (cd use-web && npm run format:check)
 step "frontend: npm run build"
 (cd use-web && npm run build)
+step "frontend: CSP build check"
+node scripts/check-csp-build.mjs
 
 step "openapi: npm run lint:api"
 (cd use-web && npm run lint:api)
