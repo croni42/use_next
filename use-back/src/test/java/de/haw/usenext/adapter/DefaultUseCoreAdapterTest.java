@@ -53,6 +53,12 @@ class DefaultUseCoreAdapterTest {
     }
 
     @Test
+    void hugeRangeIsReportedAsTooLarge() {
+        var e = assertThrows(OclExpressionException.class, () -> adapter.evaluate("Sequence{1..2000000000}->size()"));
+        assertTrue(e.getMessage().contains("more than"), e.getMessage());
+    }
+
+    @Test
     void cancellationStopsAnIteratingEvaluation() throws Exception {
         // use-core never checks the interrupt flag itself; the adapter does it on every iteration step
         String expr = "Sequence{1..5000}->forAll(a | Sequence{1..5000}->forAll(b | Sequence{1..5000}->forAll(c | a + b + c > 0)))";

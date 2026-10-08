@@ -55,16 +55,18 @@ const middleware: Middleware = {
   },
 
   async post(context: ResponseContext) {
-    if (context.response.status === 403 && isMutating(context.init)) {
+    let response = context.response;
+    if (response.status === 403 && isMutating(context.init)) {
       // Stale CSRF token: fetch a fresh one and repeat the request once. The retry uses the plain fetch
       // (context.fetch would run the middleware again and could loop); init already carries the credentials.
       resetCsrfToken();
-      return fetch(context.url, withCsrfHeader(context.init, await loadCsrfToken()));
+      response = await fetch(context.url, withCsrfHeader(context.init, await loadCsrfToken()));
     }
-    if (context.response.status === 401 && !context.url.endsWith(LOGIN_PATH)) {
+    // Also checked after the retry: once the session has expired the first answer is a 403, the repeat a 401.
+    if (response.status === 401 && !context.url.endsWith(LOGIN_PATH)) {
       unauthorizedHandler?.();
     }
-    return undefined;
+    return response === context.response ? undefined : response;
   },
 };
 

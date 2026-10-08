@@ -38,7 +38,7 @@ public class DefaultUseCoreAdapter implements UseCoreAdapter {
     private static final Pattern STRING_LITERAL = Pattern.compile("'(?:[^'\\\\]|\\\\.)*'");
     private static final Pattern RANGE_OPERATOR = Pattern.compile("\\.\\.");
     private static final Pattern LITERAL_RANGE =
-            Pattern.compile("(?<![\\w.])(\\d{1,9})\\s*\\.\\.\\s*(\\d{1,9})(?![\\w.])");
+            Pattern.compile("(?<![\\w.])(\\d{1,18})\\s*\\.\\.\\s*(\\d{1,18})(?![\\w.])");
 
     private final String modelSource;
     private final String stateScript;

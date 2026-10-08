@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { login, setUnauthorizedHandler } from './api-client';
+import { evaluateOcl, login, setUnauthorizedHandler } from './api-client';
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -49,6 +49,18 @@ describe('api-client', () => {
       .mockResolvedValueOnce(json(403, {}));
     await expect(login('lasse', 'pw')).rejects.toBeDefined();
     expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('signals an expired session when the repeat after a 403 is answered with 401', async () => {
+    const handler = vi.fn();
+    setUnauthorizedHandler(handler);
+    fetchMock
+      .mockResolvedValueOnce(csrf('stale'))
+      .mockResolvedValueOnce(json(403, { status: 403, title: 'Forbidden' }))
+      .mockResolvedValueOnce(csrf('fresh'))
+      .mockResolvedValueOnce(json(401, { status: 401, title: 'Not authenticated' }));
+    await expect(evaluateOcl('1')).rejects.toBeDefined();
+    expect(handler).toHaveBeenCalledOnce();
   });
 
   it('does not treat a failed login as an expired session', async () => {
