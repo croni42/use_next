@@ -82,6 +82,16 @@ decisions are documented in ADR-008 to ADR-011 in the [ADRs](../architecture/9_a
 - The backend must provide suitable security-related HTTP headers (e.g. CSP, clickjacking protection, HSTS), so
   that the browser protection mechanisms intended in the frontend are effectively supported. Integration tests verify
   these headers (BR-13).
+- Headers are written by two filter chains in `SecurityConfig` that share one header method: `/api/**` and everything
+  else (the static files of the `use-web` production build). Only the Content-Security-Policy differs. Do not set
+  security headers anywhere else.
+- The generated controllers have no `/api` prefix in their mappings; `WebConfig` adds it, so the root of the
+  application stays free for the static files. The session cookie path is `/api`.
+- The Maven profile `with-frontend` packages `use-web/dist` (built beforehand with `npm run build`) as static files
+  into the jar. The plain `./mvnw verify` does not include the frontend.
+- HSTS is written only for requests that Tomcat treats as HTTPS. `server.forward-headers-strategy` is deliberately not
+  set in `application.properties`, because it would make the application trust `X-Forwarded-*` headers from any
+  client. A deployment behind a TLS-terminating proxy must set it, otherwise no HSTS header is sent.
 - CORS: if frontend and backend run on different origins, CORS is configured explicitly with credentials and a fixed
   allowed origin, never a wildcard. In development the dev-server proxy is preferred so both share one origin.
 - The `Secure` cookie attribute is required whenever the application is served over HTTPS. Its handling for local
