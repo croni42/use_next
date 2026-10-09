@@ -243,6 +243,8 @@ Stack Overflow: *Stack Overflow Developer Survey 2025* (
 [https://survey.stackoverflow.co/2025/technology#1-web-frameworks-and-technologies](https://survey.stackoverflow.co/2025/technology#1-web-frameworks-and-technologies),
 retrieved 07.10.2026
 
+[//]: # (TODO ...human, manually... verifiy new references! Not just abstract and summaries)
+
 ## S42
 
 Pearce, H., Ahmad, B., Tan, B., Dolan-Gavitt, B., Karri, R.: Asleep at the Keyboard? Assessing the Security of GitHub
