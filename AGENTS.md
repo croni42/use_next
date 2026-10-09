@@ -28,6 +28,7 @@ java -Xmx512m -jar use-back/target/use-back-0.0.1-SNAPSHOT.jar      # packaged j
 cd use-web && npm ci && npm test && npm run lint && npm run build      # frontend checks
 cd use-web && npm run dev                 # Vite dev server, proxies /api to localhost:8080
 bash scripts/check-drift.sh               # fails if the committed client differs from the spec
+node scripts/check-context-files.mjs     # fails on hidden Unicode characters in AGENTS.md (tests: node --test scripts/check-context-files.test.mjs)
 cd use-web && npm run format          # Prettier (write); `format:check` only checks
 cd use-web && npm run lint:api            # Spectral lint of openapi/openapi.yaml (ruleset: openapi/.spectral.yaml)
 bash scripts/check-stage1.sh             # all locally runnable stage 1 checks in sequence (stops at the first failure)
