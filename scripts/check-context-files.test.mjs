@@ -50,6 +50,26 @@ const flagged = [
   [0xe0000, 'tag character range start'],
   [0xe0041, 'tag latin capital letter a'],
   [0xe007f, 'tag character range end'],
+  [0xfe00, 'variation selector-1'],
+  [0xfe0f, 'variation selector-16'],
+  [0xe0100, 'variation selector-17'],
+  [0xe01ef, 'variation selector-256'],
+  [0x115f, 'hangul choseong filler'],
+  [0x1160, 'hangul jungseong filler'],
+  [0x3164, 'hangul filler'],
+  [0x2800, 'braille pattern blank'],
+  [0x034f, 'combining grapheme joiner'],
+  [0x0000, 'null (control)'],
+  [0x001b, 'escape (control)'],
+  [0x007f, 'delete (control)'],
+  [0x0085, 'next line (control)'],
+  [0x2028, 'line separator'],
+  [0x2029, 'paragraph separator'],
+  [0x00a0, 'no-break space'],
+  [0x2003, 'em space'],
+  [0x3000, 'ideographic space'],
+  [0xe000, 'private use character'],
+  [0x0378, 'unassigned code point'],
 ];
 
 for (const [cp, name] of flagged) {
@@ -87,8 +107,32 @@ test('clean file passes', () => {
 });
 
 test('umlauts and typographic quotes pass', () => {
-  const r = run(write('\u00E4\u00F6\u00FC\u00DF \u201Equote\u201C \u2018x\u2019 \u2013 \u2026 \u00A0 \u{1F600}\n'));
+  const r = run(write('\u00E4\u00F6\u00FC\u00DF \u201Equote\u201C \u2018x\u2019 \u2013 \u2026 \u{1F600} \u2192 \u2500\n'));
   assert.equal(r.code, 0);
+});
+
+test('emoji with variation selector fails', () => {
+  const r = run(write('ab\n\u2764\uFE0F\n'));
+  assert.equal(r.code, 1);
+  assert.match(r.err, /:2:2: U\+FE0F /);
+});
+
+test('emoji joined with a zero width joiner fails', () => {
+  const r = run(write('\u{1F468}\u200D\u{1F469}\n'));
+  assert.equal(r.code, 1);
+  assert.match(r.err, /:1:2: U\+200D /);
+});
+
+test('emoji without joiner or variation selector passes', () => {
+  assert.equal(run(write('\u{1F600}\n')).code, 0);
+});
+
+test('decomposed umlaut (a + combining diaeresis) passes', () => {
+  assert.equal(run(write('a\u0308\n')).code, 0);
+});
+
+test('tab, line feed, carriage return and plain space pass', () => {
+  assert.equal(run(write('a\tb c\nd\r\ne\r\n')).code, 0);
 });
 
 test('BOM at position 0 passes', () => {

@@ -1,14 +1,18 @@
-// Fails if an AI context file contains invisible Unicode characters that can hide instructions:
-// zero-width characters, bidirectional controls, invisible operators, Unicode tag characters.
+// Fails if an AI context file contains invisible or blank-looking Unicode characters that can hide instructions:
+// control, format, private-use, unassigned and separator characters, default-ignorable characters,
+// variation selectors and the braille blank. Plain space, tab, line feed and carriage return pass.
 // Usage: node scripts/check-context-files.mjs [file ...]   (default: the files in defaultFiles)
 import { existsSync, readFileSync } from 'node:fs';
 
 const defaultFiles = ['AGENTS.md'];
 
-// Named code points from the requirement; every other Unicode format character (\p{Cf}) is flagged as well.
+// Names for the report; the rule itself is flaggedPattern below.
 const names = new Map([
   [0x00ad, 'SOFT HYPHEN'],
+  [0x034f, 'COMBINING GRAPHEME JOINER'],
   [0x061c, 'ARABIC LETTER MARK'],
+  [0x115f, 'HANGUL CHOSEONG FILLER'],
+  [0x1160, 'HANGUL JUNGSEONG FILLER'],
   [0x180e, 'MONGOLIAN VOWEL SEPARATOR'],
   [0x200b, 'ZERO WIDTH SPACE'],
   [0x200c, 'ZERO WIDTH NON-JOINER'],
@@ -29,14 +33,35 @@ const names = new Map([
   [0x2067, 'RIGHT-TO-LEFT ISOLATE'],
   [0x2068, 'FIRST STRONG ISOLATE'],
   [0x2069, 'POP DIRECTIONAL ISOLATE'],
+  [0x2800, 'BRAILLE PATTERN BLANK'],
+  [0x3164, 'HANGUL FILLER'],
   [0xfeff, 'ZERO WIDTH NO-BREAK SPACE (BOM)'],
 ]);
 
+const allowed = new Set([0x20, 0x09, 0x0a, 0x0d]);
+
+const flaggedPattern =
+  /^[\p{Cc}\p{Cf}\p{Co}\p{Cn}\p{Cs}\p{Zs}\p{Zl}\p{Zp}\p{Default_Ignorable_Code_Point}\p{Variation_Selector}\u2800]$/u;
+
+// Fallback labels for code points without an entry in names.
+const categories = [
+  [/^\p{Cc}$/u, 'CONTROL CHARACTER'],
+  [/^\p{Cf}$/u, 'FORMAT CHARACTER'],
+  [/^\p{Co}$/u, 'PRIVATE USE CHARACTER'],
+  [/^\p{Cn}$/u, 'UNASSIGNED CODE POINT'],
+  [/^\p{Cs}$/u, 'SURROGATE'],
+  [/^\p{Zs}$/u, 'SPACE SEPARATOR'],
+  [/^[\p{Zl}\p{Zp}]$/u, 'LINE OR PARAGRAPH SEPARATOR'],
+  [/^\p{Variation_Selector}$/u, 'VARIATION SELECTOR'],
+  [/^\p{Default_Ignorable_Code_Point}$/u, 'DEFAULT IGNORABLE CHARACTER'],
+];
+
 function describe(cp) {
+  if (allowed.has(cp)) return null;
+  const ch = String.fromCodePoint(cp);
+  if (!flaggedPattern.test(ch)) return null;
   if (cp >= 0xe0000 && cp <= 0xe007f) return names.get(cp) ?? 'TAG CHARACTER';
-  if (names.has(cp)) return names.get(cp);
-  if (/^\p{Cf}$/u.test(String.fromCodePoint(cp))) return 'FORMAT CHARACTER';
-  return null;
+  return names.get(cp) ?? categories.find(([re]) => re.test(ch))?.[1] ?? 'HIDDEN CHARACTER';
 }
 
 const explicit = process.argv.length > 2;

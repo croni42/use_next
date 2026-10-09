@@ -25,7 +25,7 @@ Sources are listed in [references.md](references.md) (S42 to S51). The OWASP Top
 | AI-07 | An AI tool used for the self-check has no write access, no shell, no network tools and no access to secrets.                                           | LLM06:2025                                               | Checked manually; this is a property of the tool setup that the repository cannot observe.                                                                                                                |
 | AI-08 | Reviewed content (code, comments, files, dependencies) is treated as untrusted data. AI output (suggestions, commands, findings) is not adopted or executed without verification. | LLM01:2025, LLM05:2025, LLM09:2025                       | Checked manually in review.                                                                                                                                                                               |
 | AI-09 | Tests are derived from the specification and the requirements, not from the implementation under test.                                                 | KR-08                                                    | Checked manually in review. The spec-first rule and the drift and Spectral jobs cover the API contract only; there are no contract tests against the running backend.                                       |
-| AI-11 | Context files for AI tools contain no invisible or bidirectional control characters.                                                                   | KR-10, LLM01:2025                                        | Automated: `scripts/check-context-files.mjs` runs as a step of the `frontend` job and in `scripts/check-stage1.sh`, together with its tests (see section 3).                                              |
+| AI-11 | Context files for AI tools contain no invisible, blank-looking or bidirectional control characters.                                                      | KR-10, LLM01:2025                                        | Automated: `scripts/check-context-files.mjs` runs as a step of the `frontend` job and in `scripts/check-stage1.sh`, together with its tests (see section 3).                                              |
 
 AI-10 (additional protection layers for an automated agent that reads untrusted content) is out of scope of this
 repository state.
@@ -89,15 +89,20 @@ Relevant ADRs: <ADR numbers>
 
 ## 3. Check for hidden characters in context files (AI-11)
 
-Invisible Unicode characters (zero-width characters, bidirectional controls, tag characters) can hide instructions in
-the rules and context files of AI tools; this has been reported for the rules files of Cursor and GitHub Copilot
-([S46](references.md#s46)).
+Invisible Unicode characters (zero-width characters, bidirectional controls, tag characters, variation selectors) can
+hide instructions in the rules and context files of AI tools; this has been reported for the rules files of Cursor and
+GitHub Copilot ([S46](references.md#s46)).
 
 - `node scripts/check-context-files.mjs [file ...]` fails (exit code 1) and prints file, line, column and code point when
-  a file contains one of: U+00AD, U+061C, U+180E, U+200B to U+200F, U+202A to U+202E, U+2060 to U+2064, U+2066 to
-  U+2069, U+FEFF (except as the first character of the file) and U+E0000 to U+E007F. Every other Unicode format
-  character (category `Cf`) is flagged as well.
-- Ordinary non-ASCII text such as umlauts and typographic quotes passes.
+  a file contains a character of one of these classes: control (`Cc`), format (`Cf`), private-use (`Co`),
+  unassigned (`Cn`), surrogate (`Cs`) and separator characters (`Zs`, `Zl`, `Zp`), characters with the Unicode
+  property `Default_Ignorable_Code_Point` or `Variation_Selector`, and U+2800 (braille pattern blank). Plain space, tab,
+  line feed, carriage return and U+FEFF as the first character of the file pass.
+- This is a rule by class, not a list of known characters. Emoji sequences with a variation selector (U+FE0F) or a zero
+  width joiner (U+200D) and non-breaking spaces fail on purpose.
+- Ordinary non-ASCII text such as letters of any script, umlauts (also decomposed), typographic quotes, arrows and
+  emoji without joiner or variation selector passes. Which code points are unassigned depends on the Unicode version of
+  the Node.js runtime.
 - Without arguments the script checks `AGENTS.md`, the only context file tracked in this repository. Further files are
   added to the list at the top of the script when they are introduced.
 - The tests are in `scripts/check-context-files.test.mjs` (`node --test`). In CI the tests and the check run as one step
