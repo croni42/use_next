@@ -17,7 +17,9 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
   state-management or UI libraries are introduced only with a documented reason in the introducing PR (FR-21).
 - Routing, test runner and further libraries are chosen during implementation and documented in the PR that introduces
   them (fixed version, licence check).
-- The dev server differs from the production build. Header and CSP checks (BR-13) run against the production build.
+- The dev server differs from the production build. The Content-Security-Policy is sent only by the production build as
+  served by `use-back`, not by the Vite dev server. Header checks (BR-13) run against `use-back` (integration tests) and
+  against the build output (`scripts/check-csp-build.mjs`).
 - Framework-specific details follow the React community conventions. This document defines project-specific rules on
   top.
 
@@ -89,7 +91,13 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
   unless explicitly justified and handled via the single central sanitisation component (FR-15, FR-16). ESLint rules
   flag unsafe sinks and are part of the mandatory CI checks.
 - Sanitisation logic must be centralised.
-- Trusted Types are enabled together with a restrictive CSP where the browser supports them.
+- Trusted Types are enabled together with a restrictive CSP where the browser supports them. The production CSP
+  requires Trusted Types for scripts and allows no policy (`trusted-types 'none'`), so the application must not create
+  one. It was checked in a Chromium-based browser only.
+- The production build must work under that CSP: no inline `<script>` or `<style>`, no `on*` or `style` attributes, no
+  `javascript:` URLs, no `data:` URIs (`build.assetsInlineLimit` is 0 in `vite.config.ts`) and no external origins. The
+  build check `scripts/check-csp-build.mjs` fails on any of these; it runs in the `frontend` CI job and in
+  `scripts/check-stage1.sh`.
 - Authentication uses the server-side session of ADR-008. The session cookie is `HttpOnly` and therefore never read,
   stored or set by frontend code. Session identifiers and tokens are not stored in `localStorage`/`sessionStorage` and
   are never transmitted via URLs (including query parameters or fragments) (FR-17).
@@ -117,7 +125,8 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
   to maintenance effort and security footprint, a fixed version and a licence check (FR-21).
 - Dependencies are pinned and installed from the lockfile. OSV-Scanner covers `package-lock.json` in CI; gitleaks scans
   for secrets.
-- Mandatory checks (ADR-011, stage 1) include ESLint with TypeScript and React security rules, the drift check of the
+- Mandatory checks (ADR-011, stage 1) include ESLint 9 (flat config `eslint.config.js`) with TypeScript and React
+  security rules, Prettier (`npm run format:check`), the production build, the CSP build check, the drift check of the
   generated client and Spectral linting of the OpenAPI specification. Source maps are not published to production.
 - The OpenAPI Generator version is pinned exactly; updates are deliberate PRs (ADR-010).
 - Generated code is excluded from handwritten-code lint rules where appropriate, but not from dependency and secret
