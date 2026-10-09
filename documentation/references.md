@@ -242,3 +242,65 @@ Stack Overflow: *Stack Overflow Developer Survey 2025* (
 2025).
 [https://survey.stackoverflow.co/2025/technology#1-web-frameworks-and-technologies](https://survey.stackoverflow.co/2025/technology#1-web-frameworks-and-technologies),
 retrieved 07.10.2026
+
+## S42
+
+Pearce, H., Ahmad, B., Tan, B., Dolan-Gavitt, B., Karri, R.: Asleep at the Keyboard? Assessing the Security of GitHub
+Copilot's Code Contributions. *arXiv preprint* arXiv:2108.09293 (v3, Dec
+2021). [https://arxiv.org/abs/2108.09293](https://arxiv.org/abs/2108.09293), retrieved 09.10.2026
+
+## S43
+
+Perry, N., Srivastava, M., Kumar, D., Boneh, D.: Do Users Write More Insecure Code with AI Assistants? In: *Proceedings
+of the 2023 ACM SIGSAC Conference on Computer and Communications Security (CCS '23)*. arXiv:2211.03622 (
+2023). [https://arxiv.org/abs/2211.03622](https://arxiv.org/abs/2211.03622), retrieved 09.10.2026
+
+## S44
+
+Spracklen, J., Wijewickrama, R., Sakib, A.H.M.N., Maiti, A., Viswanath, B., Jadliwala, M.: We Have a Package for You! A
+Comprehensive Analysis of Package Hallucinations by Code Generating LLMs. In: *34th USENIX Security Symposium*
+(2025). arXiv:2406.10279 (v3). [https://arxiv.org/abs/2406.10279](https://arxiv.org/abs/2406.10279), retrieved
+09.10.2026
+
+## S45
+
+Veracode: *2025 GenAI Code Security Report*, press release of 30 Jul
+2025. [https://www.veracode.com/press-release/ai-generated-code-poses-major-security-risks-in-nearly-half-of-all-development-tasks-veracode-research-reveals/](https://www.veracode.com/press-release/ai-generated-code-poses-major-security-risks-in-nearly-half-of-all-development-tasks-veracode-research-reveals/),
+retrieved 09.10.2026. Vendor statement; only the press release was read, not the report.
+
+## S46
+
+Lakshmanan, R.: New 'Rules File Backdoor' Attack Lets Hackers Inject Malicious Code via AI Code Editors (finding by
+Pillar Security). *The Hacker News*, 18 Mar
+2025. [https://thehackernews.com/2025/03/new-rules-file-backdoor-attack-lets.html](https://thehackernews.com/2025/03/new-rules-file-backdoor-attack-lets.html),
+retrieved 09.10.2026. Secondary press report; the original report was not read.
+
+## S47
+
+OWASP GenAI Security Project: OWASP Top 10 for LLM Applications
+2025. [https://genai.owasp.org/llm-top-10/](https://genai.owasp.org/llm-top-10/), retrieved 09.10.2026
+
+## S48
+
+OWASP Foundation: LLM Prompt Injection Prevention Cheat Sheet. *OWASP Cheat Sheet Series*
+(n.d.). [https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html),
+retrieved 09.10.2026
+
+## S49
+
+Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T., Fritz, M.: Not what you've signed up for: Compromising
+Real-World LLM-Integrated Applications with Indirect Prompt Injection. *arXiv preprint* arXiv:2302.12173 (v2, May
+2023). [https://arxiv.org/abs/2302.12173](https://arxiv.org/abs/2302.12173), retrieved 09.10.2026
+
+## S50
+
+Debenedetti, E., Shumailov, I., Fan, T., Hayes, J., Carlini, N., Fabian, D., Kern, C., Shi, C., Terzis, A., Tramèr, F.:
+Defeating Prompt Injections by Design. *arXiv preprint* arXiv:2503.18813 (v2, Jun
+2025). [https://arxiv.org/abs/2503.18813](https://arxiv.org/abs/2503.18813), retrieved 09.10.2026
+
+## S51
+
+National Institute of Standards and Technology (NIST): Secure Software Development Practices for Generative AI and
+Dual-Use Foundation Models: An SSDF Community Profile. *NIST Special Publication 800-218A* (Jul
+2024). [https://csrc.nist.gov/pubs/sp/800/218/a/final](https://csrc.nist.gov/pubs/sp/800/218/a/final), retrieved
+09.10.2026
