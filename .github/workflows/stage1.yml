@@ -62,6 +62,10 @@ jobs:
         working-directory: use-web
       - name: CSP build check
         run: node scripts/check-csp-build.mjs
+      - name: Context file check
+        run: |
+          node --test scripts/check-context-files.test.mjs
+          node scripts/check-context-files.mjs
       - name: Result
         if: always()
         env:

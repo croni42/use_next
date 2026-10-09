@@ -34,6 +34,9 @@ step "frontend: npm run build"
 (cd use-web && npm run build)
 step "frontend: CSP build check"
 node scripts/check-csp-build.mjs
+step "frontend: context file check"
+node --test scripts/check-context-files.test.mjs
+node scripts/check-context-files.mjs
 
 step "openapi: npm run lint:api"
 (cd use-web && npm run lint:api)
