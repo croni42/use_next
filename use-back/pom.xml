@@ -19,6 +19,8 @@
 		<use-core.version>7.5.0</use-core.version>
 		<!-- spring-boot:run activates the dev profile (dev-only password hash); tests and packaging are unaffected -->
 		<spring-boot.run.profiles>dev</spring-boot.run.profiles>
+		<!-- Heap limit for spring-boot:run (use-core cannot limit memory itself); a packaged jar needs -Xmx512m on the java command line -->
+		<spring-boot.run.jvmArguments>-Xmx512m</spring-boot.run.jvmArguments>
 	</properties>
 	<dependencies>
 		<dependency>

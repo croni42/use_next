@@ -24,6 +24,7 @@ Run from Git Bash on Windows. JDK 21, Maven and Node 24 are required.
 bash scripts/install-use-core.sh          # once: installs org.tzi.use:use-core into ~/.m2 (skipped if present)
 cd use-back && ./mvnw verify              # backend build + all tests
 cd use-back && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev   # dev profile: login lasse / dev-password
+java -Xmx512m -jar use-back/target/use-back-0.0.1-SNAPSHOT.jar      # packaged jar (after ./mvnw package): pass the heap limit here
 cd use-web && npm ci && npm test && npm run lint && npm run build      # frontend checks
 cd use-web && npm run dev                 # Vite dev server, proxies /api to localhost:8080
 bash scripts/check-drift.sh               # fails if the committed client differs from the spec
