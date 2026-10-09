@@ -70,16 +70,21 @@ the mandatory checks.
 CI runs on GitHub Actions (ADR-011). Workflows only call commands that can be executed locally. Branch protection
 requires the stage 1 checks before merge.
 
-**Stage 1 (mandatory):**
+**Stage 1 (mandatory):** the workflow `.github/workflows/stage1.yml` runs seven jobs on pushes (`main`, `WIP-**`,
+`feature/**`), pull requests and manual dispatch:
 
-- OpenAPI linting with Spectral, including the rule that `apiKey` is only allowed in cookies, never in query
-  parameters.
-- Drift check: the generated TypeScript client is regenerated and CI fails on any difference to the committed files.
-- ESLint with TypeScript and React security rules (unsafe DOM sinks are flagged).
-- Backend integration tests for security headers (BR-13) and for session and CSRF behaviour (BR-09, BR-11).
-- Architecture test for the adapter boundary to `use-core` (BR-02).
-- CI-only tools, run as pinned GitHub Actions: oasdiff (breaking changes against `main`), OSV-Scanner (dependencies in
-  `pom.xml` and `package-lock.json`) and gitleaks (secrets).
+| Job            | Checks                                                                                                              |
+|----------------|---------------------------------------------------------------------------------------------------------------------|
+| `backend`      | Builds `use-core` from the pinned commit, then `./mvnw verify`: all backend tests, including security header (BR-13), session and CSRF (BR-09, BR-11) integration tests and the architecture test for the adapter boundary (BR-02). |
+| `frontend`     | `npm ci`, unit tests, ESLint with TypeScript and React security rules (unsafe DOM sinks are flagged), Prettier check, production build and the CSP build check (`scripts/check-csp-build.mjs`). |
+| `drift`        | `scripts/check-drift.sh`: the generated TypeScript client is regenerated and the job fails on any difference to the committed files. |
+| `openapi-lint` | Spectral with `openapi/.spectral.yaml`, including the rule that `apiKey` is only allowed in cookies, never in query parameters. |
+| `oasdiff`      | Breaking API changes against the previous tip of the branch (push), the base branch (pull request) or `origin/main` (manual run). |
+| `osv-scanner`  | Known vulnerabilities in `use-back/pom.xml` (directly declared packages only, `--no-resolve`) and `use-web/package-lock.json`. |
+| `gitleaks`     | Secrets in the full git history.                                                                                    |
+
+All jobs except `oasdiff`, `osv-scanner` and `gitleaks` are covered by `bash scripts/check-stage1.sh`, which runs the
+checks in sequence and stops at the first failure.
 
 **Stage 2 light (only if capacity remains):** licence check, contract tests against the running backend (e.g.
 Schemathesis), OWASP Dependency-Check.
