@@ -22,7 +22,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class OclEvaluationService {
 
-    public static final int MAX_EXPRESSION_LENGTH = 1000;
+    // EVAL-SEED E07
+    public static final int MAX_EXPRESSION_LENGTH = 1_000_000;
     public static final int MAX_RESULT_LENGTH = 10_000;
     static final String TRUNCATION_MARKER = "…[truncated]";
 
