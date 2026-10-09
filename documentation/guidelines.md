@@ -6,6 +6,9 @@ and only referenced here.
 
 > Detailed guidelines for specific the frontend and backend are described in
 > separate: [frontend guidelines](frontend/frontend_guidelines.md) / [backend guidelines](backend/backend_guidelines.md).
+>
+> Rules for AI-assisted development and the self-check with an AI tool are described in the
+> [AI guidelines](ai_guidelines.md).
 
 ## 1. Architecture and Documentation Reference
 
@@ -18,7 +21,6 @@ and only referenced here.
 - Central architecture decisions (ADRs) are bindingly documented
   in: [architecture_decisions](architecture/9_architecture_decisions.md).
 - Known risks and technical debt are described in: [risks_technical_debts](architecture/11_risks_technical_debts.md).
-- Rules for AI-assisted development (AI-nn) and the self-check with an AI tool: [ai_guidelines](ai_guidelines.md).
 
 ## 2. Technology Baseline
 
