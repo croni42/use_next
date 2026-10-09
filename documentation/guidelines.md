@@ -18,6 +18,7 @@ and only referenced here.
 - Central architecture decisions (ADRs) are bindingly documented
   in: [architecture_decisions](architecture/9_architecture_decisions.md).
 - Known risks and technical debt are described in: [risks_technical_debts](architecture/11_risks_technical_debts.md).
+- Rules for AI-assisted development (AI-nn) and the self-check with an AI tool: [ai_guidelines](ai_guidelines.md).
 
 ## 2. Technology Baseline
 
@@ -76,7 +77,7 @@ requires the stage 1 checks before merge.
 | Job            | Checks                                                                                                              |
 |----------------|---------------------------------------------------------------------------------------------------------------------|
 | `backend`      | Builds `use-core` from the pinned commit, then `./mvnw verify`: all backend tests, including security header (BR-13), session and CSRF (BR-09, BR-11) integration tests and the architecture test for the adapter boundary (BR-02). |
-| `frontend`     | `npm ci`, unit tests, ESLint with TypeScript and React security rules (unsafe DOM sinks are flagged), Prettier check, production build and the CSP build check (`scripts/check-csp-build.mjs`). |
+| `frontend`     | `npm ci`, unit tests, ESLint with TypeScript and React security rules (unsafe DOM sinks are flagged), Prettier check, production build, the CSP build check (`scripts/check-csp-build.mjs`) and the context file check (`scripts/check-context-files.mjs`, with its tests): it fails when `AGENTS.md` contains invisible or bidirectional Unicode characters. |
 | `drift`        | `scripts/check-drift.sh`: the generated TypeScript client is regenerated and the job fails on any difference to the committed files. |
 | `openapi-lint` | Spectral with `openapi/.spectral.yaml`, including the rule that `apiKey` is only allowed in cookies, never in query parameters. |
 | `oasdiff`      | Breaking API changes against the previous tip of the branch (push), the base branch (pull request) or `origin/main` (manual run). |
@@ -85,6 +86,9 @@ requires the stage 1 checks before merge.
 
 All jobs except `oasdiff`, `osv-scanner` and `gitleaks` are covered by `bash scripts/check-stage1.sh`, which runs the
 checks in sequence and stops at the first failure.
+
+AI-assisted changes follow the [AI guidelines](ai_guidelines.md) in addition to these rules. They pass the same checks
+and the same review as all other changes.
 
 **Stage 2 light (only if capacity remains):** licence check, contract tests against the running backend (e.g.
 Schemathesis), OWASP Dependency-Check.
