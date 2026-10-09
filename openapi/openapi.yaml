@@ -178,6 +178,9 @@ components:
       properties:
         username:
           type: string
+        # EVAL-SEED E03
+        displayName:
+          type: string
     OclEvaluationRequest:
       type: object
       required: [expression]
