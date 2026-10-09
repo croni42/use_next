@@ -74,7 +74,7 @@ jobs:
           {
             echo "## Frontend checks"
             echo
-            echo "**$JOB_STATUS** - eslint, Prettier, production build and CSP build check"
+            echo "**$JOB_STATUS** - eslint, Prettier, production build, CSP build check and context file check"
             echo
           } >> "$GITHUB_STEP_SUMMARY"
 
