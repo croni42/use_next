@@ -32,10 +32,28 @@ Policy acts as a complementary defense-in-depth measure. It limits the impact of
 replace secure coding. Allowed origins for backend communication are explicitly defined, and external scripts kept
 to the necessary minimum.
 
-The backend sets the security headers (CSP, clickjacking protection, HSTS). Backend integration tests verify them in
-CI against the production build, since the dev server differs from the production build (ADR-007, ADR-011, BR-13). In
-development the dev-server proxy gives frontend and backend one origin; otherwise CORS is configured explicitly with
-credentials and a fixed allowed origin, never a wildcard (ADR-008).
+The backend sets the security headers (CSP, clickjacking protection, HSTS). Two Spring Security filter chains share one
+header method: `/api/**` and everything else, i.e. the static files of the `use-web` production build, which `use-back`
+serves same-origin (profile `with-frontend`). Both carry Referrer-Policy `no-referrer`, a fixed Permissions-Policy,
+`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Cross-Origin-Opener-Policy` and
+`Cross-Origin-Resource-Policy` `same-origin`. HSTS is written only for requests that Tomcat treats as HTTPS.
+Only the Content-Security-Policy differs:
+
+- API responses: `default-src 'none'; frame-ancestors 'none'`.
+- Frontend responses: `default-src 'none'`, with `'self'` for script, style, image, font, connect and manifest sources,
+  `base-uri 'none'`, `object-src 'none'`, `frame-ancestors 'none'`, no `'unsafe-inline'`, no `'unsafe-eval'`, no
+  `data:`, and `require-trusted-types-for 'script'; trusted-types 'none'` (Trusted Types is required and no policy may
+  be created).
+
+The frontend policy applies only to the production build; the Vite dev server does not send it. Integration tests
+against a real Tomcat verify the header values (`SessionCsrfIntegrationTest` for the API, `FrontendHeadersIntegrationTest`
+for the frontend), and `scripts/check-csp-build.mjs` checks the build output for content the policy would block (BR-13,
+FR-14, ADR-007, ADR-011). In development the dev-server proxy gives frontend and backend one origin; otherwise CORS is
+configured explicitly with credentials and a fixed allowed origin, never a wildcard (ADR-008).
+
+Known limits: the frontend policy was checked in a Chromium-based browser only; other browsers ignore
+`require-trusted-types-for`. HSTS was tested with a forwarded-HTTPS request, not over real TLS; behind a TLS-terminating
+proxy the deployment must set `server.forward-headers-strategy`, otherwise no HSTS header is sent.
 
 > [S3](../references.md#s3), [S40](/documentation/references.md#s40)
 
