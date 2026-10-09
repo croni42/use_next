@@ -51,9 +51,9 @@ separately maintained project and not a separately deployable container of USE_N
 | Layer / Part                | Responsibility                                                                                                       |
 |-----------------------------|----------------------------------------------------------------------------------------------------------------------|
 | API layer                   | Controllers implementing the interfaces generated from the OpenAPI specification at build time (not committed).       |
-| Application / use cases     | Orchestration of use cases. No `use-core` details.                                                                   |
-| Adapter package             | The only place that imports `org.tzi.use.*`. Maps `use-core` results and errors to backend models and error codes (BR-02). |
-| Technical infrastructure    | Spring Security (session, CSRF, headers), Bean Validation, central error handling, configuration.                    |
+| Application / use cases     | Orchestration of use cases (`service` package). `OclEvaluationService` runs evaluations in a bounded pool with a time limit per request and calls the adapter. No `use-core` details. |
+| Adapter package             | The only place that imports `org.tzi.use.*` (`AdapterBoundaryTest`). Loads the fixed model and its initial state from classpath resources (`models/company.use`, `models/company.soil`), builds a fresh object graph per call and maps `use-core` results and errors to backend models and error codes (BR-02). |
+| Technical infrastructure    | Spring Security (session, CSRF, headers; one filter chain for `/api/**`, one for the static files of the `use-web` production build, which `use-back` serves same-origin), Bean Validation, central error handling, configuration. `WebConfig` adds the `/api` prefix to the generated controllers. |
 
 ## Cross-cutting Parts
 
