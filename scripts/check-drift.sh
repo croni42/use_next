@@ -14,6 +14,7 @@ npm run --silent generate:api >/dev/null
 
 cd "$root"
 if ! git diff --exit-code -- use-web/src/api; then
+  git diff --stat -- use-web/src/api
   echo "DRIFT: generated client differs from the committed one. Run 'npm run generate:api' and commit." >&2
   exit 1
 fi
