@@ -166,6 +166,34 @@ mandatory and covered by integration tests (BR-09).
 
 ***
 
+## Resource exhaustion in expression evaluation
+
+The backend evaluates OCL expressions supplied by the user with `use-core`, in the same JVM as the rest of the
+application. A single request can therefore consume CPU time, memory or worker threads (for example through very large
+ranges or deeply nested collection operations) and make the service unavailable for everyone. `use-core` offers no
+limits or cancellation of its own.
+
+Prevention (BR-17, see [backend_guidelines.md](../backend/backend_guidelines.md#resource-limits-for-expression-evaluation-br-17)):
+bounded expression length and result length, a bounded pool with a queue and a hard time limit per request, range
+bounds restricted to small integer literals, cancellation of timed-out evaluations at every iteration step, rejection
+with 503 and `Retry-After` when the time limit is exceeded or the pool is full, and a heap limit (`-Xmx512m`) in the
+documented start commands.
+
+Residual risks:
+
+- Memory cannot be bounded per request. The heap is shared by all threads of the JVM, and the adapter catches an
+  `OutOfMemoryError` only on the evaluation thread. `-Xmx` limits the damage but does not guarantee availability.
+- Evaluations that run long without iterating cannot be interrupted, because `use-core` never checks the interrupt flag;
+  the adapter's own check (a subclass of the evaluation context) runs only when a collection operation binds its loop
+  variable. A timed-out evaluation of that kind keeps its worker thread; the pool size bounds how many can exist.
+- There is no rate limiting. The pool and its queue are the only throttle, and they are shared by all callers.
+- The range check is textual (regular expressions on the expression), not a check of the parsed expression.
+- Static state inside `use-core` is not excluded; the adapter builds a fresh object graph per call, but this does not
+  isolate static fields.
+- The JVM is not started with `-XX:+ExitOnOutOfMemoryError` and there is no supervisor that restarts it.
+
+***
+
 # Architectural Impact
 
 The identified risks demonstrate that security-related requirements in the frontend cannot be addressed in isolation.
@@ -173,6 +201,10 @@ The key architectural consequence is a clear separation of responsibilities: the
 measures at the level of presentation and user interaction, while the backend remains responsible for the authoritative
 enforcement of validation, sanitation, and authorisation. This results in the necessity to define security mechanisms
 not only at the component level, but also explicitly at the interfaces between frontend and backend.
+
+Risks that arise from the use of AI tools in development (for example hidden characters in context files) are described
+in [11_risks_technical_debts.md](../architecture/11_risks_technical_debts.md) and the rules for them are in the
+[AI guidelines](../ai_guidelines.md).
 
 ## References
 
