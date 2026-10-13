@@ -38,7 +38,8 @@ chosen architecture, because the frontend still depends on external data, backen
 | Backend-side validation gaps                   | The frontend can support validation, but it cannot enforce it reliably | Client-side checks improve usability, but the backend must remain authoritative               | The frontend must not rely on UI validation alone                       |
 | Authorisation bypass through direct API access | Users may call backend endpoints without using the UI                  | UI restrictions are only advisory. Authorisation must be enforced on the server               | The frontend must treat backend authorisation as the source of truth    |
 | Integration complexity around `use-core`       | The wrapper architecture introduces an additional integration layer    | An adapter reduces coupling, but technical integration issues may still occur                 | The frontend should not depend on internal core details                 |
-| `use-core` licence, sourcing and concurrency   | In-process use: licence header, how `use-core` is obtained and its behaviour under concurrent requests are not yet verified (ADR-009) | Verify and document before the first implementation PR; the adapter serialises access if required | The frontend should tolerate sequential or slower processing            |
+| `use-core` licence, sourcing and concurrency   | In-process use (ADR-009): licence headers state GPL 2 or later, `use-core` is built from a pinned commit; static state inside `use-core` is not analysed | A fresh object graph per call, bounded evaluation pool; see [backend guidelines](../backend/backend_guidelines.md) | The frontend should tolerate sequential or slower processing            |
+| Resource exhaustion in expression evaluation   | One request can use CPU, memory or worker threads of the shared JVM (BR-17) | Length, range, time, pool and heap limits; residual risks in [security_risks_and_prevention.md](../security/security_risks_and_prevention.md#resource-exhaustion-in-expression-evaluation) | The frontend should handle 503 with `Retry-After`                       |
 | Session in server memory                       | Sessions end on backend restart; no shared session store (ADR-008)     | Accepted for local operation; a shared session store is a later extension (FR-23)             | The frontend must handle 401 by returning to login                      |
 | Performance or responsiveness limitations      | Backend orchestration around `use-core` may affect response times      | Caching, batching and optimised orchestration can help, but will not remove all constraints   | The frontend should tolerate latency and present loading states clearly |
 | Inconsistent API evolution                     | Backend changes may affect generated clients and existing workflows    | Versioning and contract discipline reduce the risk, but coordination effort remains necessary | The frontend must be updated together with API contract changes         |
@@ -92,6 +93,18 @@ generated code compiles, is compatible with Spring Boot 4.x and can send the ses
 The CI pipeline (ADR-011) and its pinned tools are themselves a dependency set that needs maintenance; pipeline runtime
 and effort are measured during the evaluation. Minimal user management and in-memory sessions are accepted debt for
 local operation.
+
+### Known limitations
+
+| Limitation | Evidence |
+|------------|----------|
+| Unknown paths of the static frontend answer 404; there is no fallback to `index.html` and no routing library yet | `FrontendHeadersIntegrationTest.missingStaticPathIs404WithoutFallback`; `use-web/package.json` |
+| The frontend CSP with Trusted Types was checked in a Chromium-based browser only; other browsers ignore `require-trusted-types-for` | [frontend_guidelines.md](../frontend/frontend_guidelines.md), [security.md](../security/security.md) |
+| HSTS behind a TLS-terminating proxy is not verified: `server.forward-headers-strategy` is deliberately unset, and the test sends a forwarded-HTTPS request instead of real TLS | `application.properties`; `FrontendHeadersIntegrationTest.hstsOnlyOverHttps`; [security.md](../security/security.md) |
+| OSV-Scanner checks Maven only for the packages declared directly in `pom.xml` (`--no-resolve`) | `.github/workflows/stage1.yml`; [solution strategy](4_solution_strategy.md) |
+| The licences of the npm development dependencies (for example `CC-BY-4.0`, `Python-2.0`, `Unlicense`, `0BSD`) are not legally reviewed for GPLv3 compatibility; no CI licence check | [licence_attribution.md](licence_attribution.md) |
+| `osv-scanner.toml` ignores GHSA-vfj7-8cjw-p6xm (`braces`, transitive dev dependency of Spectral, no fix available) until 2027-01-08 | `osv-scanner.toml` |
+| Memory per request cannot be bounded, no rate limiting, no supervisor for the JVM | [security_risks_and_prevention.md](../security/security_risks_and_prevention.md#resource-exhaustion-in-expression-evaluation) |
 
 The modular architecture also depends on clear component boundaries, service abstractions and documentation. If
 these are not applied consistently during implementation, maintainability and security traceability will gradually
