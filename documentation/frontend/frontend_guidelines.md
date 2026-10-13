@@ -15,8 +15,8 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - Node.js (LTS) is required in addition to the JDK. Package manager is npm; `package-lock.json` is committed.
 - Application state is handled with React's built-in mechanisms first (state, context, reducers). Additional
   state-management or UI libraries are introduced only with a documented reason in the introducing PR (FR-21).
-- Routing, test runner and further libraries are chosen during implementation and documented in the PR that introduces
-  them (fixed version, licence check).
+- The test runner is Vitest with Testing Library and jsdom. No routing library is a dependency yet; routing and further
+  libraries are documented in the PR that introduces them (fixed version, licence check).
 - The dev server differs from the production build. The Content-Security-Policy is sent only by the production build as
   served by `use-back`, not by the Vite dev server. Header checks (BR-13) run against `use-back` (integration tests) and
   against the build output (`scripts/check-csp-build.mjs`).
@@ -158,7 +158,7 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - Before adding new containers, layers, or major modules in the frontend, the impact on arc42 documentation (
   [building block view](../architecture/5_building_block.md), [solution strategy](../architecture/4_solution_strategy.md),
   [risks](../architecture/11_risks_technical_debts.md)) must be analysed and documented.
-- Open points: choice of routing and test libraries; verification (spike) that the generated TypeScript client can send
+- Open points: choice of a routing library; verification (spike) that the generated TypeScript client can send
   the session cookie and the CSRF header (ADR-010).
 - Open frontend-related risks and technical debts (e.g. technology choices, incomplete validation) must be tracked in
   the [risk documentation](../architecture/11_risks_technical_debts.md) and referenced from relevant PRs.
