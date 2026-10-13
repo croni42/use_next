@@ -200,6 +200,9 @@ jobs:
       # --no-resolve: only the dependencies declared in pom.xml are checked; the transitive Maven
       # resolution cannot run because use-core is not in Maven Central.
       - name: Scan
+        # Without an explicit shell, GitHub runs `bash -e {0}` (no pipefail): the exit code of the
+        # pipe below would be the one of tee, not of the scanner.
+        shell: bash
         run: osv-scanner scan source --config=osv-scanner.toml --no-resolve -L use-back/pom.xml -L use-web/package-lock.json 2>&1 | tee osv-result.txt
       - name: Scan report
         if: always()
