@@ -111,9 +111,14 @@ decisions are documented in ADR-008 to ADR-011 in the [ADRs](../architecture/9_a
   are implemented within the adapter layer.
 - Return values and errors from `use-core` are transformed into backend models and clearly defined error codes
   before being passed to the frontend.
-- Before the first implementation PR the following is verified and documented (ADR-009): the used `use-core` files carry
-  a licence header compatible with GPLv3, how `use-core` is obtained (published artefact or build from source), and how
-  its objects behave under concurrent requests. If required, the adapter serialises access.
+- Licence: the upstream licence headers of `use-core` state GPL version 2 or (at your option) any later version; see
+  [licence_attribution.md](../architecture/licence_attribution.md).
+- Sourcing: `use-core` is not on Maven Central. `scripts/install-use-core.sh` builds it from a pinned upstream commit and
+  installs it into the local Maven repository; CI rebuilds it on every run.
+- Concurrency: `use-core` objects are mutable and not thread-safe. The adapter builds a fresh object graph for every call
+  and does not serialise access; `UseCoreConcurrencyTest` asserts identical results for parallel calls with separate
+  graphs. Static state inside `use-core` is not analysed (see the
+  [risk description](../security/security_risks_and_prevention.md#resource-exhaustion-in-expression-evaluation)).
 
 ***
 
@@ -138,6 +143,29 @@ decisions are documented in ADR-008 to ADR-011 in the [ADRs](../architecture/9_a
   data (passwords, session IDs, CSRF tokens) in the logs.
 - Standardized error and timeout handling is required to support a consistent UX in the frontend and to make technical
   issues visible at an early stage (BR-16).
+
+### Resource limits for expression evaluation (BR-17)
+
+Evaluation runs `use-core` in-process, so the limits are enforced in `OclEvaluationService` and the adapter, not in the
+web layer alone:
+
+- Input: an expression has 1 to 1000 characters (`openapi.yaml` and `OclEvaluationService.MAX_EXPRESSION_LENGTH`).
+  Ranges such as `1..100` are accepted only with integer literal bounds and at most 10000 elements
+  (`DefaultUseCoreAdapter.MAX_RANGE_SIZE`).
+- Result: longer results are cut off at 10000 characters with a marker.
+- Duration and parallelism: a bounded pool (`usenext.ocl.threads`, `usenext.ocl.queue`) and a hard time limit per
+  request (`usenext.ocl.timeout`), configured in `application.properties`. A timed-out evaluation is cancelled; the
+  adapter checks the interrupt flag at every iteration step because `use-core` does not.
+- Rejection: a timeout or a full pool is answered with 503 and `Retry-After`; the response body is a minimal problem
+  object (BR-12, BR-16). Tests: `longRunningExpressionTimesOutAndTheServerStaysResponsive` and
+  `rejectsImmediatelyWhenAllSlotsAreBusy`.
+- Memory: `use-core` cannot limit memory itself. The documented start commands set `-Xmx512m` (`pom.xml` for
+  `spring-boot:run`, the packaged jar needs it on the `java` command line, see `AGENTS.md`). The adapter maps an
+  `OutOfMemoryError` on the evaluation thread to an error response.
+
+Residual risks (memory is not bounded per request, evaluations without iteration cannot be interrupted, no rate
+limiting) are described in
+[security_risks_and_prevention.md](../security/security_risks_and_prevention.md#resource-exhaustion-in-expression-evaluation).
 
 ***
 
