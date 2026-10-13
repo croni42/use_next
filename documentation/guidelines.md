@@ -98,7 +98,8 @@ Schemathesis), OWASP Dependency-Check.
 **Pipeline rules:**
 
 - GitHub Actions are pinned to a commit SHA, workflow permissions are minimal, tool versions are fixed and reviewed like
-  any other dependency.
+  any other dependency. The CI-only tools oasdiff, OSV-Scanner and gitleaks are downloaded as release binaries of a fixed
+  version and verified against a recorded SHA-256 (see [solution_strategy](architecture/4_solution_strategy.md)).
 - Replacing a single tool is a pipeline change, not an architecture change.
 - Every Pull Request references the relevant architecture and/or risk documents if decisions are affected:  
   [solution_strategy](architecture/4_solution_strategy.md), [architecture_decisions](architecture/9_architecture_decisions.md), [risks_technical_debts](architecture/11_risks_technical_debts.md).
