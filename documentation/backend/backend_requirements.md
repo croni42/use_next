@@ -35,6 +35,7 @@ of **USE_NEXT** in a reliable and secure manner.
 | BR-14 | The backend shall be integrated into automated checks for API consistency, security-relevant configuration and dependency vulnerabilities. | Security and contract issues should be detected early in the development process.                          |
 | BR-15 | The backend shall follow a controlled dependency policy, including review, fixed versions and regular vulnerability checks.                | Dependency and supply-chain risks affect both backend and frontend stability.                              |
 | BR-16 | The backend shall provide predictable response behaviour for loading, failure and timeout situations.                                      | The frontend depends on consistent backend behaviour to implement robust user feedback and loading states. |
+| BR-17 | The backend shall bound the resources a single request can use (input size, result size, duration, parallelism and, where the runtime permits, memory) and shall reject requests beyond these bounds with a defined, minimal error. | In-process evaluation by `use-core` can otherwise be driven to unbounded CPU and memory use by one request (see BR-06, BR-12, BR-16). |
 
 ## Scope Note
 
