@@ -90,6 +90,12 @@ All jobs except `oasdiff`, `osv-scanner` and `gitleaks` are covered by `bash scr
 checks in sequence and stops at the first failure. Findings of the three scanner jobs appear in the job summary of the
 workflow run.
 
+Every job writes a job summary that starts with a verdict line (PASSED, FAILED or NOT CHECKED) and a line saying what
+the job covers and does not cover. `backend`, `frontend`, `drift` and `openapi-lint` run all of their checks even when one
+fails (`scripts/ci-checks.sh`) and fail at the end; the summary lists every check with result and duration, shows the
+first lines of the output of a failed check, and shows a check that did not run as "not run", never as passed.
+Locally, `scripts/check-stage1.sh` still stops at the first failure.
+
 AI-assisted changes follow the [AI guidelines](ai_guidelines.md) in addition to these rules. They pass the same checks
 and the same review as all other changes.
 
