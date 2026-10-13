@@ -38,7 +38,7 @@ step "frontend: context file check"
 node --test scripts/check-context-files.test.mjs
 node scripts/check-context-files.mjs
 step "frontend: security report tests"
-node --test scripts/security-report.test.mjs
+node --test scripts/security-report.test.mjs scripts/step-report.test.mjs
 
 step "openapi: npm run lint:api"
 (cd use-web && npm run lint:api)
