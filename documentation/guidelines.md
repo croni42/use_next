@@ -79,15 +79,16 @@ requires the stage 1 checks before merge.
 | Job            | Checks                                                                                                              |
 |----------------|---------------------------------------------------------------------------------------------------------------------|
 | `backend`      | Builds `use-core` from the pinned commit, then `./mvnw verify`: all backend tests, including security header (BR-13), session and CSRF (BR-09, BR-11) integration tests and the architecture test for the adapter boundary (BR-02). |
-| `frontend`     | `npm ci`, unit tests, ESLint with TypeScript and React security rules (unsafe DOM sinks are flagged), Prettier check, production build, the CSP build check (`scripts/check-csp-build.mjs`) and the context file check (`scripts/check-context-files.mjs`, with its tests): it fails when `AGENTS.md` contains invisible or bidirectional Unicode characters. |
+| `frontend`     | `npm ci`, unit tests, ESLint with TypeScript and React security rules (unsafe DOM sinks are flagged), Prettier check, production build, the CSP build check (`scripts/check-csp-build.mjs`) and the context file check (`scripts/check-context-files.mjs`, with its tests): it fails when `AGENTS.md` contains invisible or bidirectional Unicode characters. The tests of the report renderer for the three scanner jobs (`scripts/security-report.test.mjs`) run here too. |
 | `drift`        | `scripts/check-drift.sh`: the generated TypeScript client is regenerated and the job fails on any difference to the committed files. |
 | `openapi-lint` | Spectral with `openapi/.spectral.yaml`, including the rule that `apiKey` is only allowed in cookies, never in query parameters. |
-| `oasdiff`      | Breaking API changes against the previous tip of the branch (push), the base branch (pull request) or `origin/main` (manual run). |
-| `osv-scanner`  | Known vulnerabilities in `use-back/pom.xml` (directly declared packages only, `--no-resolve`) and `use-web/package-lock.json`. |
-| `gitleaks`     | Secrets in the full git history.                                                                                    |
+| `oasdiff`      | Breaking API changes against the previous tip of the branch (push), the base branch (pull request) or `origin/main` (manual run); a breaking change (oasdiff level error) fails the job. The summary lists the changes with their rule IDs and says explicitly **NOT CHECKED** (with a warning annotation) when there was nothing to compare with, for example on the first push of a new branch. |
+| `osv-scanner`  | Known vulnerabilities in `use-back/pom.xml` (directly declared packages only, `--no-resolve`) and `use-web/package-lock.json`. Every non-zero exit code of the scanner fails the job (1 findings, 128 no packages found, other codes errors). The summary lists package, version, advisory, severity and fixed version. |
+| `gitleaks`     | Secrets in the git history reachable from the checked-out commit; secrets on other branches are not seen until those branches run their own pipeline. A finding fails the job until it is gone from the history of the branch (a revert commit does not help). The summary lists rule, file, line, short commit and date, never the value. |
 
 All jobs except `oasdiff`, `osv-scanner` and `gitleaks` are covered by `bash scripts/check-stage1.sh`, which runs the
-checks in sequence and stops at the first failure.
+checks in sequence and stops at the first failure. Findings of the three scanner jobs appear in the job summary of the
+workflow run.
 
 AI-assisted changes follow the [AI guidelines](ai_guidelines.md) in addition to these rules. They pass the same checks
 and the same review as all other changes.
