@@ -26,11 +26,17 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
       # use-core is built from the pinned upstream commit on every run (--force), so the cached
       # Maven repository can never supply a stale or unverified use-core.
       - run: bash scripts/install-use-core.sh --force
-      - run: ./mvnw -B verify
-        working-directory: use-back
+      - name: Checks
+        run: bash scripts/ci-checks.sh backend
+      - name: Report
+        if: always()
+        run: node scripts/step-report.mjs backend >> "$GITHUB_STEP_SUMMARY"
       - name: Test report
         if: always()
         run: bash scripts/ci-summary.sh tests "Backend tests" use-back/target/surefire-reports/TEST-*.xml >> "$GITHUB_STEP_SUMMARY"
@@ -49,36 +55,14 @@ jobs:
           cache-dependency-path: use-web/package-lock.json
       - run: npm ci
         working-directory: use-web
-      - run: npm test -- --reporter=default --reporter=junit --outputFile.junit=test-results/junit.xml
-        working-directory: use-web
+      - name: Checks
+        run: bash scripts/ci-checks.sh frontend
+      - name: Report
+        if: always()
+        run: node scripts/step-report.mjs frontend >> "$GITHUB_STEP_SUMMARY"
       - name: Test report
         if: always()
         run: bash scripts/ci-summary.sh tests "Frontend tests" use-web/test-results/junit.xml >> "$GITHUB_STEP_SUMMARY"
-      - run: npm run lint
-        working-directory: use-web
-      - run: npm run format:check
-        working-directory: use-web
-      - run: npm run build
-        working-directory: use-web
-      - name: CSP build check
-        run: node scripts/check-csp-build.mjs
-      - name: Context file check
-        run: |
-          node --test scripts/check-context-files.test.mjs
-          node scripts/check-context-files.mjs
-      - name: Security report tests
-        run: node --test scripts/security-report.test.mjs
-      - name: Result
-        if: always()
-        env:
-          JOB_STATUS: ${{ job.status }}
-        run: |
-          {
-            echo "## Frontend checks"
-            echo
-            echo "**$JOB_STATUS** - eslint, Prettier, production build, CSP build check, context file check and security report tests"
-            echo
-          } >> "$GITHUB_STEP_SUMMARY"
 
   drift:
     runs-on: ubuntu-24.04
@@ -96,18 +80,11 @@ jobs:
           node-version: '24'
           cache: npm
           cache-dependency-path: use-web/package-lock.json
-      - run: bash scripts/check-drift.sh
-      - name: Result
+      - name: Checks
+        run: bash scripts/ci-checks.sh drift
+      - name: Report
         if: always()
-        env:
-          JOB_STATUS: ${{ job.status }}
-        run: |
-          {
-            echo "## API client drift"
-            echo
-            echo "**$JOB_STATUS** - committed client matches openapi/openapi.yaml"
-            echo
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: node scripts/step-report.mjs drift >> "$GITHUB_STEP_SUMMARY"
 
   openapi-lint:
     runs-on: ubuntu-24.04
@@ -123,19 +100,11 @@ jobs:
           cache-dependency-path: use-web/package-lock.json
       - run: npm ci
         working-directory: use-web
-      - run: npm run lint:api
-        working-directory: use-web
-      - name: Result
+      - name: Checks
+        run: bash scripts/ci-checks.sh openapi-lint
+      - name: Report
         if: always()
-        env:
-          JOB_STATUS: ${{ job.status }}
-        run: |
-          {
-            echo "## OpenAPI lint"
-            echo
-            echo "**$JOB_STATUS** - Spectral ruleset openapi/.spectral.yaml"
-            echo
-          } >> "$GITHUB_STEP_SUMMARY"
+        run: node scripts/step-report.mjs openapi-lint >> "$GITHUB_STEP_SUMMARY"
 
   # CI-only tools below: pinned release binaries, verified against the SHA-256 recorded here
   # (taken from the release's checksum file). They need no token, key or account.
