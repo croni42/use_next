@@ -56,7 +56,8 @@ function lines(text) {
 }
 
 export function excerpt(job, name, log) {
-  const all = lines(log);
+  // lines of passed tests only hide the failure in a long output
+  const all = lines(log).filter((l) => !/^\s*[✔✓]/.test(l));
   while (all.length > 0 && all[all.length - 1].trim() === '') {
     all.pop();
   }

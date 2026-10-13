@@ -63,6 +63,14 @@ test('backend: Maven [ERROR] lines are shown instead of the whole log', () => {
   assert.ok(!md.includes('Scanning'));
 });
 
+test('lines of passed tests do not push the failure out of the excerpt', () => {
+  const log = [...Array.from({ length: 60 }, (_, i) => `✔ passes ${i}`), '✖ the failing test', 'AssertionError: hidden character'].join('\n');
+  const dir = fixture({ 'context.log': log });
+  const md = renderJob('frontend', parseChecks(tsv([['context', 'Context file check', 'failed', '1', '1']])), dir);
+  assert.match(md, /AssertionError: hidden character/);
+  assert.ok(!md.includes('passes 3'));
+});
+
 test('no output at all is stated', () => {
   const dir = fixture({ 'lint.log': '' });
   assert.match(renderJob('frontend', parseChecks(tsv([['lint', 'ESLint', 'failed', '1', '1']])), dir), /_No output\._/);
