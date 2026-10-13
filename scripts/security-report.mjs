@@ -36,7 +36,7 @@ function readJson(path) {
   }
 }
 
-function table(header, rows) {
+export function table(header, rows) {
   const shown = rows.slice(0, MAX_ROWS);
   const lines = [`| ${header.join(' | ')} |`, `|${header.map(() => '---').join('|')}|`, ...shown.map((r) => `| ${r.join(' | ')} |`)];
   if (rows.length > shown.length) {
@@ -45,7 +45,7 @@ function table(header, rows) {
   return lines;
 }
 
-function plural(n, one, many) {
+export function plural(n, one, many) {
   return `${n} ${n === 1 ? one : many}`;
 }
 
