@@ -5,6 +5,8 @@ architecture and security guidelines. They are not intended as a complete list o
 a project-specific selection of relevant risks from which concrete requirements, protective measures and design
 principles for the frontend are developed.
 
+[//]: # (TODO review and update the sources of this document: the risk entries added with the resource-limit work have no or abbreviated sources; check every risk entry for a reference ID in references.md)
+
 ***
 
 ## Cross-Site Scripting (XSS)
