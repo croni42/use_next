@@ -162,9 +162,15 @@ the target architecture.
   Spring MVC fits the synchronous nature of `use-core`; Spring Security and Bean Validation cover authentication
   (ADR-008), validation (BR-06) and error handling (BR-12).
 - **Consequences:**
-  - Before the first implementation PR it is verified and documented that the used `use-core` files carry a licence
-    header compatible with GPLv3, how `use-core` is obtained (published artefact or build from source), and how its
-    objects behave under concurrent requests (the adapter serialises access if required).
+  - `use-core` is not published to Maven Central. `scripts/install-use-core.sh` builds it from a pinned commit of the
+    `main` branch of `useocl/use` and installs it into the local Maven repository; its source is not copied into this
+    repository. The used `use-core` files must carry a licence header compatible with GPLv3 (see
+    [licence_attribution.md](licence_attribution.md)), and the behaviour of its objects under concurrent requests is
+    documented below (the adapter serialises access if required).
+  - The pinned commit is raised only deliberately. The pull request names the old and the new commit and the re-check
+    of the licence headers. The CI check `use-core-pin` (pull requests only) fails a pull request that changes the pin
+    until a user who is not the author and has the repository role maintain or admin has approved its current head
+    commit.
   - An architecture test enforces the adapter boundary (BR-02).
   - The generated server interfaces (ADR-010) must be compatible with Spring Boot 4.x; a deviation from the chosen
     Spring Boot line requires an update of this ADR.
@@ -214,7 +220,8 @@ the target architecture.
 - **Status:** Accepted
 - **Decision:** GitHub Actions is the CI platform. Every check can be run locally with one command; workflows only
   call these commands. Stage 1 requires only JDK 21, Node.js (LTS) and the project's package managers (Maven Wrapper,
-  npm): no Docker, no accounts or API keys, no Python.
+  npm); building `use-core` additionally needs Git and Maven (`mvn`) on the PATH, because the upstream project has no
+  Maven Wrapper. No Docker, no accounts or API keys, no Python.
   - **Stage 1 (mandatory):** OpenAPI linting (Spectral, including a rule that allows `apiKey` only in cookies, never
     in query parameters), drift check of the generated client, ESLint with TypeScript and React security rules,
     backend integration tests for security headers (BR-13) and for session and CSRF behaviour (BR-09, BR-11),
@@ -223,13 +230,15 @@ the target architecture.
     `package-lock.json`) and gitleaks (secrets), run as pinned GitHub Actions.
   - **Stage 2 light (only if capacity remains):** licence check, contract tests against the running backend (e.g.
     Schemathesis), OWASP Dependency-Check.
+  - Changes of the pinned `use-core` commit are gated by a maintainer approval (check `use-core-pin`, pull requests
+    only).
   - Branch protection requires the stage 1 checks before merge. Pull requests use a template that names affected
     ADRs and confirms security conformance.
 - **Rationale:** The baseline provides automated checks without elaborate setup (FR-22, BR-14). Tools that need a local
   installation run in CI only and are optional locally. The selected tools are freely licensed (Apache-2.0: Spectral,
   oasdiff, OSV-Scanner; MIT: gitleaks) and need no API key.
 - **Consequences:**
-  - Actions are pinned to a commit SHA, workflow permissions are minimal, and tool versions are fixed and reviewed
-    like any other dependency (BR-15, FR-21).
+  - Actions are pinned to a commit SHA, workflow permissions are minimal, and tool versions and the `use-core`
+    commit are fixed and reviewed like any other dependency (BR-15, FR-21).
   - Replacing a single tool is a pipeline change, not an architecture change.
   - Pipeline runtime and maintenance effort are measured during the evaluation.
