@@ -1,5 +1,3 @@
-<!-- TODO: draft template, to be adjusted before it is relied on -->
-
 ## Summary
 
 ## Affected ADRs and risks
@@ -9,6 +7,11 @@
 ## Security
 
 - [ ] No security rule from the solution strategy (Security Decisions) is violated, or the exception is described here.
+
+## Manual review (not covered by CI)
+
+- [ ] Reviewer looked at the hand-written code: no token, session information or other sensitive value in a URL query (FR-17).
+- [ ] Any new evaluation path still limits expression length, result size and evaluation time (BR-16, BR-17).
 
 ## AI assistance
 

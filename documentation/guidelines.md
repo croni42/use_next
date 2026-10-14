@@ -97,6 +97,11 @@ fails (`scripts/ci-checks.sh`) and fail at the end; the summary lists every chec
 first lines of the output of a failed check, and shows a check that did not run as "not run", never as passed.
 Locally, `scripts/check-stage1.sh` still stops at the first failure.
 
+A green pipeline does not mean that every rule was checked. Two cases are not covered by any job: a CSRF token or other
+sensitive value that hand-written code places in a URL query (FR-17), and a missing or too generous limit on expression
+length, result size or evaluation time (BR-16, BR-17). The manual review covers them, using the checklist "Manual review
+(not covered by CI)" in the [pull request template](../.github/pull_request_template.md).
+
 AI-assisted changes follow the [AI guidelines](ai_guidelines.md) in addition to these rules. They pass the same checks
 and the same review as all other changes.
 
