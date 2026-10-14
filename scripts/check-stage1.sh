@@ -6,7 +6,7 @@
 # install-use-core.sh), Node and git on the PATH. Stop running dev servers first: npm ci replaces node_modules.
 #   bash scripts/check-stage1.sh
 #
-# Not run here (CI only): oasdiff, OSV-Scanner, gitleaks.
+# Not run here (CI only): oasdiff, OSV-Scanner, gitleaks, and the use-core-pin check (pull requests only; only its tests run here).
 set -euo pipefail
 
 root="$(git rev-parse --show-toplevel)"
@@ -38,7 +38,7 @@ step "frontend: context file check"
 node --test scripts/check-context-files.test.mjs
 node scripts/check-context-files.mjs
 step "frontend: security report tests"
-node --test scripts/security-report.test.mjs scripts/step-report.test.mjs
+node --test scripts/security-report.test.mjs scripts/step-report.test.mjs scripts/check-use-core-pin.test.mjs
 
 step "openapi: npm run lint:api"
 (cd use-web && npm run lint:api)
