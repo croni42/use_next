@@ -47,8 +47,9 @@ the mandatory checks.
 - For new modules/components, it must be checked into which existing building block they logically belong.
 - Contract changes always start in the OpenAPI specification. Controllers implement the generated interfaces; the
   frontend uses the generated client (ADR-006, ADR-010).
-- Routing, test runner and further libraries are chosen during implementation and documented in the PR that introduces
-  them (fixed version, licence check).
+- Routing and further libraries are chosen during implementation and documented in the PR that introduces them (fixed
+  version, licence check). The test runner (currently Vitest) can be replaced without an ADR as long as the CI test job
+  and the test coverage of the requirements are kept.
 
 > Changes to the basic structure (e.g., new containers or layers) require an update
 > of [building_block](architecture/5_building_block.md) and possibly new ADRs

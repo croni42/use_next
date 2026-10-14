@@ -15,7 +15,8 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - Node.js (LTS) is required in addition to the JDK. Package manager is npm; `package-lock.json` is committed.
 - Application state is handled with React's built-in mechanisms first (state, context, reducers). Additional
   state-management or UI libraries are introduced only with a documented reason in the introducing PR (FR-21).
-- The test runner is Vitest with Testing Library and jsdom. No routing library is a dependency yet; routing and further
+- The test runner is currently Vitest with Testing Library and jsdom. It can be replaced without an ADR as long as the
+  CI test job and the test coverage of the requirements are kept. No routing library is a dependency yet; routing and further
   libraries are documented in the PR that introduces them (fixed version, licence check).
 - The dev server differs from the production build. The Content-Security-Policy is sent only by the production build as
   served by `use-back`, not by the Vite dev server. Header checks (BR-13) run against `use-back` (integration tests) and
