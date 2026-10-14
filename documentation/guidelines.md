@@ -102,6 +102,19 @@ sensitive value that hand-written code places in a URL query (FR-17), and a miss
 length, result size or evaluation time (BR-16, BR-17). The manual review covers them, using the checklist "Manual review
 (not covered by CI)" in the [pull request template](../.github/pull_request_template.md).
 
+**The `use-core` pin:** `use-core` is not part of this repository. It is built from the upstream commit pinned in
+`scripts/install-use-core.sh` (`USE_REPO_URL`, `USE_COMMIT`, `USE_CORE_VERSION`); the pin never follows a moving branch,
+so builds are reproducible and the licence header statement in
+[licence_attribution](architecture/licence_attribution.md) refers to a known commit. The pin is raised only
+deliberately. The pull request names the old and the new commit and confirms that the licence headers were re-read and
+the tests are green. The workflow `.github/workflows/use-core-pin.yml` (check `use-core-pin`, pull requests only) fails
+when a pull request changes the pin, until one user who is not the author and has the repository role maintain or admin
+has approved the current head commit; a later push, a dismissal or a "request changes" from that user cancels the
+approval. If the check cannot read the role of an approver it fails. If the base branch has no install script, the check
+cannot compare and says so with a warning ("NOT CHECKED"). Limits: a pull request can weaken the check by editing the
+workflow or the script, so Branch Protection with code owners for `.github/` and `scripts/install-use-core.sh` must be
+set up by an admin of the target repository; and the check says nothing about the content of the new upstream commit.
+
 AI-assisted changes follow the [AI guidelines](ai_guidelines.md) in addition to these rules. They pass the same checks
 and the same review as all other changes.
 

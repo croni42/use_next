@@ -13,7 +13,7 @@ USE_NEXT has a first working vertical slice: login with a server-side session an
 | `use-web/` | React + TypeScript + Vite frontend; the API client in `use-web/src/api/` is generated and committed |
 | `use-back/` | Spring Boot backend (`de.haw.usenext`): `api` (generated interfaces + controllers), `service`, `adapter` (only place that touches `use-core`), `security` |
 | `openapi/openapi.yaml` | The API contract shared by both modules (single source of truth) |
-| `scripts/` | `check-drift.sh` (client drift check), `install-use-core.sh` (builds `use-core` from the pinned upstream commit) |
+| `scripts/` | `check-drift.sh` (client drift check), `install-use-core.sh` (builds `use-core` from the pinned upstream commit), `check-use-core-pin.mjs` (CI gate on pull requests that change that pin) |
 | `documentation/` | arc42 architecture, requirements, security |
 
 ## Commands
