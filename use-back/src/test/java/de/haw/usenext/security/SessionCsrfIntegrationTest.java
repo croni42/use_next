@@ -99,7 +99,6 @@ class SessionCsrfIntegrationTest {
         HttpResponse<String> login = send("POST", "/auth/login", preLoginSession, csrf, LOGIN_BODY);
         assertEquals(200, login.statusCode());
         String loginCookie = setCookie(login);
-        System.out.println("[CSRF] Set-Cookie on login: " + loginCookie);
         assertTrue(loginCookie.contains("HttpOnly"), loginCookie);
         assertTrue(loginCookie.contains("Secure"), loginCookie);
         assertTrue(loginCookie.contains("SameSite=Strict"), loginCookie);
