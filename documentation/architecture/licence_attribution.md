@@ -33,8 +33,10 @@ See [https://arc42.org](https://arc42.org) for more information.
 `use-back` depends on `org.tzi.use:use-core` (version 7.5.0), which is not published to Maven Central. It is built from
 the pinned upstream commit `30d480dbcca2f404b1350039516a56f46c1efb1f` of
 [useocl/use](https://github.com/useocl/use) by `scripts/install-use-core.sh` and installed into the local Maven
-repository; CI rebuilds it on every run. The upstream licence headers state GPL version 2 or (at your option) any later
-version (source cited in ADR-009); USE_NEXT uses `use-core` under the GPLv3, which the "or later" wording permits.
+repository; CI rebuilds it on every run. USE_NEXT is licensed under the GPLv3. The intended licence of the USE project is GPL
+version 3 or later. As long as the upstream headers at the pinned commit are unchanged, they state GPL version 2 or (at
+your option) any later version (source cited in ADR-009); `use-core` is used under the GPLv3, which the "or later"
+wording permits.
 `use-core` is not modified.
 
 ## Development dependencies
