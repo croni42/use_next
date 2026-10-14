@@ -162,7 +162,7 @@ export function renderJob(job, checks, dir) {
     const failed = checks.filter((c) => c.status === 'failed');
     const notRun = checks.filter((c) => c.status !== 'failed' && c.status !== 'passed');
     if (failed.length > 0) {
-      out.push(`**FAILED** - ${failed.length} of ${plural(checks.length, 'check', 'checks')} failed${notRun.length ? `, ${notRun.length} not run` : ''}.`);
+      out.push(`**FAILED** - ${failed.length} of ${plural(checks.length, 'check', 'checks')} failed${notRun.length ? `, ${notRun.length} not run` : ''}. Failed: ${failed.map((c) => c.title).join(', ')}.`);
     } else if (notRun.length > 0) {
       out.push(`**FAILED** - ${notRun.length} of ${plural(checks.length, 'check', 'checks')} did not run.`);
     } else {

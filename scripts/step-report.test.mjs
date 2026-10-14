@@ -30,7 +30,7 @@ test('all checks passed', () => {
 test('a failed check shows its output; a check that did not run is never shown as passed', () => {
   const dir = fixture({ 'lint.log': 'src/a.ts\n  3:15  error  Dangerous property  react/no-danger\n' });
   const md = renderJob('frontend', parseChecks(tsv([['lint', 'ESLint', 'failed', '1', '14'], ['format', 'Prettier check', 'not-run', '-', '-']])), dir);
-  assert.match(md, /\*\*FAILED\*\* - 1 of 2 checks failed, 1 not run\./);
+  assert.match(md, /\*\*FAILED\*\* - 1 of 2 checks failed, 1 not run\. Failed: ESLint\./);
   assert.match(md, /\| Prettier check \| not run \| - \| - \|/);
   assert.match(md, /<details open>/);
   assert.match(md, /react\/no-danger/);
