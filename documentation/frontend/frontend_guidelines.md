@@ -57,7 +57,9 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - Request handling, response mapping, and technical error processing must be centralised in the communication layer (
   e.g. API service module) and must not be duplicated across UI components.
 - The communication layer is configured once to send the session cookie (credentials) and the CSRF header on
-  state-changing requests (ADR-008, FR-13).
+  state-changing requests (ADR-008, FR-13). The one exception to the generated client is the single repeat of a request
+  after a 403 (stale CSRF token) in `use-web/src/api-client.ts`: it uses the global `fetch` inside the middleware,
+  because `context.fetch` would run the middleware again and could loop.
 - The communication layer must provide uniform types for result states (e.g. “success”, “error”, “loading” or result
   objects) in order to enable a consistent error and loading view throughout the frontend.
 - For security-relevant endpoints (e.g. auth-related requests), the communication layer must provide standardised error

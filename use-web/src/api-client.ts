@@ -11,7 +11,9 @@ import type {
  * - credentials: 'include' on every request, so the session cookie is sent
  * - CSRF header on every mutating request, one retry with a fresh token after a 403
  * - a single hook for 401 responses, so the UI can return to the login page when the session is gone
- * Nothing in the UI calls fetch directly or sets these per call.
+ * All requests go through the generated client; the UI neither calls fetch nor sets these per call. The single exception
+ * is the one-time repeat of a request after a 403 (stale CSRF token), which uses the global fetch inside the middleware
+ * because context.fetch would run the middleware again.
  */
 
 const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
