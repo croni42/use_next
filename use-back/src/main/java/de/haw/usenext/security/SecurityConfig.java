@@ -46,7 +46,7 @@ public class SecurityConfig {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
-    /** Prototype assumption (R-17): exactly one configured user; the hash comes from configuration. */
+    /** Prototype assumption: exactly one configured user; the hash comes from configuration. */
     @Bean
     UserDetailsService userDetailsService(@Value("${usenext.auth.username}") String username,
                                           @Value("${usenext.auth.password-hash}") String passwordHash) {
