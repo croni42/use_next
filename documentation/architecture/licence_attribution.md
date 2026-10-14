@@ -41,6 +41,11 @@ your option) any later version (source cited in ADR-009); `use-core` is used und
 wording permits.
 `use-core` is not modified.
 
+Besides its own source files, `use-core` brings the compile-scope dependencies declared in its `use-core/pom.xml` at the
+pinned commit: guava 33.5.0-jre, `org.eclipse.jdt.annotation` 2.2.600, antlr-runtime 3.5.3, jline 2.14.6,
+combinatoricslib 2.3, jruby-core 9.3.1.0 and vtd-xml 2.13.4. Their licences differ from the project's own, and their
+compatibility with the GPLv3 has not been reviewed.
+
 ## Development dependencies
 
 The npm lockfile of `use-web` contains, besides permissive licences (MIT, ISC, Apache-2.0, BSD), the following
