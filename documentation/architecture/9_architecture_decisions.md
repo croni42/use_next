@@ -102,7 +102,7 @@ the target architecture.
 
 ## ADR-008: Authentication and Session Concept
 
-- **Status:** Accepted
+- **Status:** Accepted (consequences extended with implementation findings)
 - **Decision:** The system uses a server-side session identified by a session cookie.
   - After login (a login operation defined in the OpenAPI specification) the backend creates a server-side session
     and sets a session cookie with the attributes `HttpOnly`, `Secure` and `SameSite=Strict`. The session ID is
@@ -139,10 +139,22 @@ the target architecture.
     later extension (FR-23).
   - Token-based authentication (bearer token) was considered and not chosen; introducing it later requires an update
     of this ADR.
+  - Implementation findings:
+    - The CSRF token is handled by Spring's plain request handler, without BREACH masking: the token from
+      `GET /api/auth/csrf` is sent back unchanged in the header.
+    - The CSRF token is replaced together with the session ID on login, so the communication layer must fetch a new
+      token afterwards.
+    - Anonymous requests never create a session: the CSRF token repository stores a token only for requests that
+      already have a session or call `/api/auth/csrf`, and the request cache is disabled.
+    - The session cookie path is `/api`; it is not sent for the static files of the frontend.
+    - A failed login answers identically for an unknown user and a wrong password.
+    - `/error` must be permitted for the container error dispatch, otherwise a 403 or 404 is turned into a 401.
+    - After a 403 on a state-changing request the communication layer fetches a fresh CSRF token and repeats the
+      request once; a 401 is also recognised after that repeat.
 
 ## ADR-009: Backend Language, Framework and Integration of `use-core`
 
-- **Status:** Accepted
+- **Status:** Accepted (consequences extended with implementation findings)
 - **Decision:** The backend (`use-back`) is implemented in Java 21 with Spring Boot 4.1.x (Spring MVC) and built with
   Maven (Maven Wrapper). `use-core` is integrated in-process through a dedicated adapter package, which is the only
   place that imports `org.tzi.use.*` (BR-02).
@@ -158,6 +170,14 @@ the target architecture.
   - The generated server interfaces (ADR-010) must be compatible with Spring Boot 4.x; a deviation from the chosen
     Spring Boot line requires an update of this ADR.
   - Return values and errors of `use-core` are mapped to backend models and defined error codes.
+  - Implementation findings:
+    - The adapter builds a new object graph (model and `MSystem`) for every request. If state is held between
+      requests later, access is serialised per `MSystem`.
+    - The architecture test `AdapterBoundaryTest` runs with the backend tests (`./mvnw verify`), which are part of the
+      stage 1 checks (ADR-011).
+    - The backend also serves the production build of the frontend (Maven profile `with-frontend`). The `/api`
+      prefix of the generated interfaces is added in `WebConfig`, and a separate filter chain serves the static files
+      read-only.
 
 ## ADR-010: OpenAPI Code Generation – Scope and Generator
 

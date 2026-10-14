@@ -64,6 +64,13 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
   paths so that UI components can clearly distinguish between “Not authenticated” (401) and “Forbidden” (403), for
   example, without having to evaluate HTTP status codes manually.
 - In development, the Vite dev-server proxy is used so that frontend and backend share one origin (ADR-008).
+- Known limitations of the generated client (ADR-010):
+  - The generated code does not satisfy the strict compiler options of the Vite template (`noUnusedLocals`,
+    `noUnusedParameters`, `erasableSyntaxOnly`, for example parameter properties in `runtime.ts`). These three options
+    are not set in `tsconfig.app.json`; `strict` is. ESLint excludes `src/api/**`.
+  - A failed call throws a `ResponseError` without a typed status. The `Problem` body is not mapped to the error; status
+    and body are read from `error.response` in the communication layer.
+  - The generated client contains 45 explicit `any` in 9 files. It is excluded from lint and is not edited by hand.
 
 ***
 
