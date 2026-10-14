@@ -201,6 +201,13 @@ the target architecture.
   - The generated client must be able to send the session cookie and the CSRF header (ADR-008); this is verified in
     the spike and configured centrally in the communication layer.
   - FR-11 is satisfied by this ADR.
+  - Implementation findings:
+    - The generated client does not satisfy the compiler options `noUnusedLocals`, `noUnusedParameters` and
+      `erasableSyntaxOnly`; they are not set in `tsconfig.app.json` (`strict` is). Handwritten code is compatible with
+      them, and ESLint checks unused variables there.
+    - A failed call throws a `ResponseError` without a typed status; the `Problem` body is not mapped. The
+      communication layer reads status and body from the response.
+    - The generated JSON mapping uses `any`, so responses are not checked against the types at run time.
 
 ## ADR-011: CI Platform and Check Stage Model
 
