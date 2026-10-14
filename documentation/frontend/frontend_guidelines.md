@@ -72,8 +72,8 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - Known limitations of the generated client (ADR-010):
   - A failed call throws a `ResponseError` without a typed status. The `Problem` body is not mapped to the error; the
     communication layer reads status and body from `error.response` (`errorStatus`, `problemDetail`).
-  - The generated client contains 45 explicit `any` in 9 files; its JSON mapping functions take `any`, so responses are
-    not checked against the types at run time. It is not edited by hand.
+  - The generated client contains explicit `any`; its JSON mapping functions take `any`, so responses are not checked
+    against the types at run time. It is not edited by hand.
 
 ***
 
@@ -169,7 +169,6 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - Before adding new containers, layers, or major modules in the frontend, the impact on arc42 documentation (
   [building block view](../architecture/5_building_block.md), [solution strategy](../architecture/4_solution_strategy.md),
   [risks](../architecture/11_risks_technical_debts.md)) must be analysed and documented.
-- Open points: choice of a routing library; verification (spike) that the generated TypeScript client can send
-  the session cookie and the CSRF header (ADR-010).
+- Open points: choice of a routing library.
 - Open frontend-related risks and technical debts (e.g. technology choices, incomplete validation) must be tracked in
   the [risk documentation](../architecture/11_risks_technical_debts.md) and referenced from relevant PRs.

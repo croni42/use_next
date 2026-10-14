@@ -148,7 +148,6 @@ the target architecture.
       already have a session or call `/api/auth/csrf`, and the request cache is disabled.
     - The session cookie path is `/api`; it is not sent for the static files of the frontend.
     - A failed login answers identically for an unknown user and a wrong password.
-    - `/error` must be permitted for the container error dispatch, otherwise a 403 or 404 is turned into a 401.
     - After a 403 on a state-changing request the communication layer fetches a fresh CSRF token and repeats the
       request once; a 401 is also recognised after that repeat.
 
@@ -171,8 +170,9 @@ the target architecture.
     Spring Boot line requires an update of this ADR.
   - Return values and errors of `use-core` are mapped to backend models and defined error codes.
   - Implementation findings:
-    - The adapter builds a new object graph (model and `MSystem`) for every request. If state is held between
-      requests later, access is serialised per `MSystem`.
+    - The adapter builds a new object graph (model and `MSystem`) for every call and does not keep it afterwards, so
+      no `MSystem` is reachable from more than one thread. A component that holds a `MSystem` between requests must
+      serialise access to it.
     - The architecture test `AdapterBoundaryTest` runs with the backend tests (`./mvnw verify`), which are part of the
       stage 1 checks (ADR-011).
     - The backend also serves the production build of the frontend (Maven profile `with-frontend`). The `/api`
