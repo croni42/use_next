@@ -104,7 +104,7 @@ local operation.
 | OSV-Scanner checks Maven only for the packages declared directly in `pom.xml` (`--no-resolve`) | `.github/workflows/stage1.yml`; [solution strategy](4_solution_strategy.md) |
 | The licences of the npm development dependencies (for example `CC-BY-4.0`, `Python-2.0`, `Unlicense`, `0BSD`) are not legally reviewed for GPLv3 compatibility; no CI licence check | [licence_attribution.md](licence_attribution.md) |
 | `osv-scanner.toml` ignores GHSA-vfj7-8cjw-p6xm (`braces`, transitive dev dependency of Spectral, no fix available) until 2027-01-08 | `osv-scanner.toml` |
-| The generated TypeScript client conflicts with three strict compiler options (not set in `tsconfig.app.json`), throws untyped `ResponseError` without a mapped `Problem` body and contains 45 explicit `any` | `use-web/tsconfig.app.json`; `use-web/src/api/runtime.ts`; [frontend_guidelines.md](../frontend/frontend_guidelines.md) |
+| The generated TypeScript client throws untyped `ResponseError` without a mapped `Problem` body (the communication layer reads status and body from the response) and contains 45 explicit `any`; its JSON mapping does not check responses against the types at run time | `use-web/src/api/runtime.ts`; `use-web/src/api-client.ts`; [frontend_guidelines.md](../frontend/frontend_guidelines.md) |
 | Memory per request cannot be bounded, no rate limiting, no supervisor for the JVM | [security_risks_and_prevention.md](../security/security_risks_and_prevention.md#resource-exhaustion-in-expression-evaluation) |
 
 The modular architecture also depends on clear component boundaries, service abstractions and documentation. If

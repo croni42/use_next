@@ -102,7 +102,7 @@ the target architecture.
 
 ## ADR-008: Authentication and Session Concept
 
-- **Status:** Accepted (consequences extended with implementation findings)
+- **Status:** Accepted
 - **Decision:** The system uses a server-side session identified by a session cookie.
   - After login (a login operation defined in the OpenAPI specification) the backend creates a server-side session
     and sets a session cookie with the attributes `HttpOnly`, `Secure` and `SameSite=Strict`. The session ID is
@@ -154,7 +154,7 @@ the target architecture.
 
 ## ADR-009: Backend Language, Framework and Integration of `use-core`
 
-- **Status:** Accepted (consequences extended with implementation findings)
+- **Status:** Accepted
 - **Decision:** The backend (`use-back`) is implemented in Java 21 with Spring Boot 4.1.x (Spring MVC) and built with
   Maven (Maven Wrapper). `use-core` is integrated in-process through a dedicated adapter package, which is the only
   place that imports `org.tzi.use.*` (BR-02).
