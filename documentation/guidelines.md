@@ -74,8 +74,9 @@ the mandatory checks.
 CI runs on GitHub Actions (ADR-011). Workflows only call commands that can be executed locally. Branch protection
 requires the stage 1 checks before merge.
 
-**Stage 1 (mandatory):** the workflow `.github/workflows/stage1.yml` runs seven jobs on pushes (`main`, `WIP-**`,
-`feature/**`), pull requests and manual dispatch:
+**Stage 1 (mandatory):** the workflow `.github/workflows/stage1.yml` runs seven jobs on pull requests (drafts included),
+on pushes to `main` and on manual dispatch. A feature branch gets its checks by opening a (draft) pull request or by
+starting the workflow by hand; plain pushes to other branches do not start it:
 
 | Job            | Checks                                                                                                              |
 |----------------|---------------------------------------------------------------------------------------------------------------------|
@@ -83,7 +84,7 @@ requires the stage 1 checks before merge.
 | `frontend`     | `npm ci`, unit tests, ESLint with TypeScript and React security rules (unsafe DOM sinks are flagged), Prettier check, production build, the CSP build check (`scripts/check-csp-build.mjs`) and the context file check (`scripts/check-context-files.mjs`, with its tests): it fails when `AGENTS.md` contains invisible or bidirectional Unicode characters. The tests of the report renderer for the three scanner jobs (`scripts/security-report.test.mjs`) run here too. |
 | `drift`        | `scripts/check-drift.sh`: the generated TypeScript client is regenerated and the job fails on any difference to the committed files. |
 | `openapi-lint` | Spectral with `openapi/.spectral.yaml`, including the rule that `apiKey` is only allowed in cookies, never in query parameters. |
-| `oasdiff`      | Breaking API changes against the previous tip of the branch (push), the base branch (pull request) or `origin/main` (manual run); a breaking change (oasdiff level error) fails the job. The summary lists the changes with their rule IDs and says explicitly **NOT CHECKED** (with a warning annotation) when there was nothing to compare with, for example on the first push of a new branch. |
+| `oasdiff`      | Breaking API changes against the previous tip of `main` (push), the base branch (pull request) or `origin/main` (manual run); a breaking change (oasdiff level error) fails the job. The summary lists the changes with their rule IDs and says explicitly **NOT CHECKED** (with a warning annotation) when there was nothing to compare with, for example when the base has no API spec. |
 | `osv-scanner`  | Known vulnerabilities in `use-back/pom.xml` (directly declared packages only, `--no-resolve`) and `use-web/package-lock.json`. Every non-zero exit code of the scanner fails the job (1 findings, 128 no packages found, other codes errors). The summary lists package, version, advisory, severity and fixed version. |
 | `gitleaks`     | Secrets in the git history reachable from the checked-out commit; secrets on other branches are not seen until those branches run their own pipeline. A finding fails the job until it is gone from the history of the branch (a revert commit does not help). The summary lists rule, file, line, short commit and date, never the value. |
 

@@ -3,7 +3,7 @@ name: stage1
 on:
   pull_request:
   push:
-    branches: [main, 'WIP-**', 'feature/**']
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
