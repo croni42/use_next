@@ -134,7 +134,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // /error must be open, otherwise the container error dispatch of a 403/404 is turned into a 401
+                        // the container error dispatch needs no login
                         .requestMatchers("/error").permitAll()
                         .requestMatchers(HttpMethod.GET, "/**").permitAll()
                         .requestMatchers(HttpMethod.HEAD, "/**").permitAll()
