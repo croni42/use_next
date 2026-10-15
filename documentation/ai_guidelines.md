@@ -115,13 +115,6 @@ consequences. They do not guarantee that a manipulated AI tool is noticed. Deter
 the controls of record; AI output is advisory only. Residual risk: suppressed findings, manipulated suggestions that
 look plausible, and reviewer overreliance.
 
-The sources point the same way: an early study of indirect prompt injection states that effective mitigations were
-lacking ([S49](references.md#s49)); the OWASP cheat sheet calls its filters and structured prompts illustrative layers,
-not a complete defence, and notes that a guardrail model is itself susceptible to prompt injection
-([S48](references.md#s48)); an architectural approach that provides provable security solves 77 % of the tasks of the
-AgentDojo benchmark, compared with 84 % without protection ([S50](references.md#s50)). All three were read at abstract
-or page level only.
-
 | Measure                                                                  | Kind                         | Works against                                                       | Does not work against                                              |
 |--------------------------------------------------------------------------|------------------------------|---------------------------------------------------------------------|--------------------------------------------------------------------|
 | No rights, secrets or tools for the AI tool ([AI-07](#ai-07))                      | limits the damage            | data leakage, triggered actions, write access                       | false or manipulated statements of the AI tool                     |
