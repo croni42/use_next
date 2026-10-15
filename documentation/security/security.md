@@ -41,7 +41,7 @@ Only the Content-Security-Policy differs:
 
 - API responses: `default-src 'none'; frame-ancestors 'none'`.
 - Frontend responses: `default-src 'none'`, with `'self'` for script, style, image, font, connect and manifest sources,
-  `base-uri 'none'`, `object-src 'none'`, `frame-ancestors 'none'`, no `'unsafe-inline'`, no `'unsafe-eval'`, no
+  `base-uri 'none'`, `form-action 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, no `'unsafe-inline'`, no `'unsafe-eval'`, no
   `data:`, and `require-trusted-types-for 'script'; trusted-types 'none'` (Trusted Types is required and no policy may
   be created).
 

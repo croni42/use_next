@@ -139,7 +139,7 @@ decisions are documented in [ADR-008](../architecture/9_architecture_decisions.m
 ## 8. Quality and operations guidelines
 
 - The backend must be integrated into automated quality and security checks (stage 1 of [ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model): security header,
-  session and CSRF tests, architecture test, dependency scanning). All checks can be run locally with one command.
+  session and CSRF tests, architecture test, dependency scanning). The tests can be run locally with one command (`./mvnw verify`); dependency scanning runs in CI only.
 - Logging and monitoring should be designed so that security-relevant events are detectable without storing sensitive
   data (passwords, session IDs, CSRF tokens) in the logs.
 - Standardized error and timeout handling is required to support a consistent UX in the frontend and to make technical
