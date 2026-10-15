@@ -35,7 +35,7 @@ The technology stack is fixed by ADRs. Deviations require a new or amended ADR (
 | Authentication      | Server-side session with session cookie, CSRF token for state-changing requests           | [ADR-008](architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept)                                                                      |
 | CI                  | GitHub Actions; every check is runnable locally with one command                          | [ADR-011](architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)                                                                      |
 
-Required local toolchain: JDK 21, Node.js 24 or later, Maven Wrapper and npm. No Docker, accounts or API keys are needed for
+Required local toolchain: JDK 21, Node.js LTS (built and tested with Node.js 24, see `use-web/package.json`), Maven Wrapper and npm. No Docker, accounts or API keys are needed for
 the mandatory checks.
 
 ## 3. Coding and Structure Conventions

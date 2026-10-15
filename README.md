@@ -40,7 +40,7 @@ technology decisions are made. Implementation steps will be based on these docum
 | Authentication   | Server-side session with `HttpOnly`, `Secure`, `SameSite=Strict` cookie and CSRF token |
 | CI               | GitHub Actions, staged checks that can be run locally                            |
 
-Required toolchain: JDK 21 and Node.js 24 or later. Details and rationale:
+Required toolchain: JDK 21 and Node.js LTS (the project is built and tested with Node.js 24; the exact requirement is `engines` in `use-web/package.json`). Details and rationale:
 [ADRs](documentation/architecture/9_architecture_decisions.md).
 
 # Documentation
