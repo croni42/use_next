@@ -116,7 +116,7 @@ decisions are documented in [ADR-008](../architecture/9_architecture_decisions.m
   [licence_attribution.md](../architecture/licence_attribution.md).
 - Sourcing: `use-core` is not on Maven Central. `scripts/install-use-core.sh` builds it from a pinned upstream commit and
   installs it into the local Maven repository; CI rebuilds it on every run.
-- Concurrency: `use-core` objects are mutable and not thread-safe. The adapter builds a fresh object graph for every call
+- Concurrency: `use-core` objects are mutable and have not been made thread-safe yet; this will be done once it is needed. The adapter builds a fresh object graph for every call
   and does not serialise access; `UseCoreConcurrencyTest` asserts identical results for parallel calls with separate
   graphs. Static state inside `use-core` is not analysed (see the
   [risk description](../security/security_risks_and_prevention.md#resource-exhaustion-in-expression-evaluation)).

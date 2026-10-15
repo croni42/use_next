@@ -26,7 +26,8 @@ import org.tzi.use.uml.sys.soil.MStatement;
 /**
  * Loads the fixed model and its initial object state from the classpath. The model is compiled once at startup
  * to fail fast; every call compiles it again into its own {@link MSystem}, because use-core objects are mutable
- * and not safe to share between threads (see UseCoreConcurrencyTest).
+ * and have not been made thread-safe yet; that is to be done once it is needed (UseCoreConcurrencyTest documents an
+ * experiment without assertion).
  */
 @Component
 public class DefaultUseCoreAdapter implements UseCoreAdapter {
