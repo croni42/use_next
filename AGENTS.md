@@ -34,7 +34,7 @@ cd use-web && npm run lint:api            # Spectral lint of openapi/openapi.yam
 bash scripts/check-stage1.sh             # all locally runnable stage 1 checks in sequence (stops at the first failure)
 ```
 
-Outside the dev profile the backend needs `USENEXT_AUTH_PASSWORD_HASH` (a Spring Security password hash).
+Outside the dev profile the backend needs `USENEXT_AUTH_PASSWORD_HASH` (a Spring Security password hash). The dev login shown above is a public, dev-only credential and not a secret; it only works with the dev profile.
 
 ## Working Rules
 
