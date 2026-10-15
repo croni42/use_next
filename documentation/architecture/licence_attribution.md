@@ -39,7 +39,8 @@ source is not part of this repository. Raising the pin goes through the maintain
 version 3 or later. As long as the upstream headers at the pinned commit are unchanged, they state GPL version 2 or (at
 your option) any later version (source cited in [ADR-009](9_architecture_decisions.md#adr-009-backend-language-framework-and-integration-of-use-core)); `use-core` is used under the GPLv3, which the "or later"
 wording permits.
-`use-core` is not modified.
+`use-core` is not modified. The licence references for `use-core` (upstream repository, licence text and source headers at
+the pinned commit) are collected in [use_core_licence.md](use_core_licence.md).
 
 Besides its own source files, `use-core` brings the compile-scope dependencies declared in its `use-core/pom.xml` at the
 pinned commit: guava 33.5.0-jre, `org.eclipse.jdt.annotation` 2.2.600, antlr-runtime 3.5.3, jline 2.14.6,
