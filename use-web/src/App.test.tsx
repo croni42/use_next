@@ -26,7 +26,7 @@ async function fillAndSubmit(
   user: ReturnType<typeof userEvent.setup>,
   password = 'secret',
 ) {
-  await user.type(screen.getByLabelText('Username'), 'lasse');
+  await user.type(screen.getByLabelText('Username'), 'dev');
   await user.type(screen.getByLabelText('Password'), password);
   await user.click(screen.getByRole('button', { name: 'Sign in' }));
 }
@@ -42,9 +42,9 @@ describe('App', () => {
   });
 
   it('shows the start page with the user when a session exists', async () => {
-    mocked.getCurrentUser.mockResolvedValue({ username: 'lasse' });
+    mocked.getCurrentUser.mockResolvedValue({ username: 'dev' });
     render(<App />);
-    expect(await screen.findByText('lasse')).toBeTruthy();
+    expect(await screen.findByText('dev')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Log out' })).toBeTruthy();
   });
 
@@ -84,12 +84,12 @@ describe('App', () => {
     expect((screen.getByRole('button') as HTMLButtonElement).disabled).toBe(
       true,
     );
-    finish({ username: 'lasse' });
-    expect(await screen.findByText('lasse')).toBeTruthy();
+    finish({ username: 'dev' });
+    expect(await screen.findByText('dev')).toBeTruthy();
   });
 
   it('returns to the login page after logout', async () => {
-    mocked.getCurrentUser.mockResolvedValue({ username: 'lasse' });
+    mocked.getCurrentUser.mockResolvedValue({ username: 'dev' });
     mocked.logout.mockResolvedValue(undefined);
     const user = userEvent.setup();
     render(<App />);
@@ -99,9 +99,9 @@ describe('App', () => {
   });
 
   it('returns to the login page when a later call reports 401', async () => {
-    mocked.getCurrentUser.mockResolvedValue({ username: 'lasse' });
+    mocked.getCurrentUser.mockResolvedValue({ username: 'dev' });
     render(<App />);
-    await screen.findByText('lasse');
+    await screen.findByText('dev');
     const handler = mocked.setUnauthorizedHandler.mock.calls[0][0];
     expect(handler).toBeTypeOf('function');
     handler?.();

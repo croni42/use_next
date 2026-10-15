@@ -68,7 +68,7 @@ class OclEndpointIntegrationTest {
         HttpResponse<String> anon = send("GET", "/auth/csrf", null, null, null);
         String preSession = sessionOf(anon);
         HttpResponse<String> login = send("POST", "/auth/login", preSession, tokenOf(anon),
-                "{\"username\":\"lasse\",\"password\":\"test-password\"}");
+                "{\"username\":\"dev\",\"password\":\"test-password\"}");
         assertEquals(200, login.statusCode());
         session = sessionOf(login);
         csrf = tokenOf(send("GET", "/auth/csrf", session, null, null));

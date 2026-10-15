@@ -25,9 +25,18 @@ structured target concept for a modern implementation.
 
 [//]: # (TODO update README on status change)
 
-**USE_NEXT** is currently in an analysis and design phase. At this stage, the repository primarily contains conceptual
-work, architectural documentation, and project guidelines rather than a finished implementation. The central
-technology decisions are made. Implementation steps will be based on these documented foundations.
+**USE_NEXT** has a first working vertical slice: login with a server-side session and CSRF protection, and one
+business function, evaluating an OCL expression against a fixed server-side model. The architecture documentation
+and the guidelines remain the binding reference for further work.
+
+## Modules
+
+| Module                         | Content                                                   |
+|--------------------------------|-----------------------------------------------------------|
+| [`use-web`](use-web/README.md)   | React + TypeScript frontend                               |
+| [`use-back`](use-back/README.md) | Spring Boot backend, integrates `use-core` via an adapter |
+| [`openapi`](openapi/openapi.yaml) | API contract shared by both modules                       |
+| [`scripts`](scripts)           | Local and CI checks                                       |
 
 ## Technology Overview
 

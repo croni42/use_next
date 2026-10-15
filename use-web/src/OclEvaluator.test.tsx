@@ -23,7 +23,7 @@ let fetchMock: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   evaluateResponse = () => json(200, { result: '14' });
   const route: Route = (url) => {
-    if (url.endsWith('/auth/me')) return json(200, { username: 'lasse' });
+    if (url.endsWith('/auth/me')) return json(200, { username: 'dev' });
     if (url.endsWith('/auth/csrf'))
       return json(200, { headerName: 'X-CSRF-TOKEN', token: 't' });
     if (url.endsWith('/ocl/evaluate')) return evaluateResponse();

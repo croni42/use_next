@@ -24,8 +24,8 @@ describe('api-client', () => {
   it('sends credentials and the CSRF header on login', async () => {
     fetchMock
       .mockResolvedValueOnce(csrf('t1'))
-      .mockResolvedValueOnce(json(200, { username: 'lasse' }));
-    await expect(login('lasse', 'pw')).resolves.toEqual({ username: 'lasse' });
+      .mockResolvedValueOnce(json(200, { username: 'dev' }));
+    await expect(login('dev', 'pw')).resolves.toEqual({ username: 'dev' });
     const [url, init] = fetchMock.mock.calls[1] as [string, RequestInit];
     expect(url).toBe('/api/auth/login');
     expect(init.credentials).toBe('include');
@@ -38,8 +38,8 @@ describe('api-client', () => {
       .mockResolvedValueOnce(csrf('stale'))
       .mockResolvedValueOnce(json(403, { status: 403, title: 'Forbidden' }))
       .mockResolvedValueOnce(csrf('fresh'))
-      .mockResolvedValueOnce(json(200, { username: 'lasse' }));
-    await expect(login('lasse', 'pw')).resolves.toEqual({ username: 'lasse' });
+      .mockResolvedValueOnce(json(200, { username: 'dev' }));
+    await expect(login('dev', 'pw')).resolves.toEqual({ username: 'dev' });
     expect(fetchMock).toHaveBeenCalledTimes(4);
     const retry = fetchMock.mock.calls[3] as [string, RequestInit];
     expect((retry[1].headers as Record<string, string>)['X-CSRF-TOKEN']).toBe(
@@ -53,7 +53,7 @@ describe('api-client', () => {
       .mockResolvedValueOnce(json(403, {}))
       .mockResolvedValueOnce(csrf('b'))
       .mockResolvedValueOnce(json(403, {}));
-    await expect(login('lasse', 'pw')).rejects.toBeDefined();
+    await expect(login('dev', 'pw')).rejects.toBeDefined();
     expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
@@ -77,7 +77,7 @@ describe('api-client', () => {
     fetchMock
       .mockResolvedValueOnce(csrf('t'))
       .mockResolvedValueOnce(json(401, { status: 401, title: 'Login failed' }));
-    await expect(login('lasse', 'bad')).rejects.toBeDefined();
+    await expect(login('dev', 'bad')).rejects.toBeDefined();
     expect(handler).not.toHaveBeenCalled();
   });
 });
