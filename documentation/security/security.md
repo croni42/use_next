@@ -14,9 +14,9 @@ should be avoided. Where HTML content is required for functional reasons, it sho
 rendering. The implementation follows OWASP recommendations on output encoding, safe sinks, and HTML sanitation.
 Where supported, Trusted Types provide an additional browser-level enforcement layer against unsafe DOM sink assignments.
 
-With React (ADR-007), values rendered through JSX are escaped by default. `dangerouslySetInnerHTML` is the single
+With React ([ADR-007](../architecture/9_architecture_decisions.md#adr-007-frontend-framework)), values rendered through JSX are escaped by default. `dangerouslySetInnerHTML` is the single
 explicit unsafe sink. It is banned or centralised in one sanitisation component by ESLint rules, which are part of the
-mandatory CI checks (ADR-011).
+mandatory CI checks ([ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)).
 > [S7](../references.md#s7), [S9](../references.md#s9), [S10](../references.md#s10), [S11](../references.md#s11)
 
 ## Configuration and CSP
@@ -47,9 +47,9 @@ Only the Content-Security-Policy differs:
 
 The frontend policy applies only to the production build; the Vite dev server does not send it. Integration tests
 against a real Tomcat verify the header values (`SessionCsrfIntegrationTest` for the API, `FrontendHeadersIntegrationTest`
-for the frontend), and `scripts/check-csp-build.mjs` checks the build output for content the policy would block (BR-13,
-FR-14, ADR-007, ADR-011). In development the dev-server proxy gives frontend and backend one origin; otherwise CORS is
-configured explicitly with credentials and a fixed allowed origin, never a wildcard (ADR-008).
+for the frontend), and `scripts/check-csp-build.mjs` checks the build output for content the policy would block ([BR-13](../backend/backend_requirements.md#br-13),
+[FR-14](../frontend/frontend_requirements.md#fr-14), [ADR-007](../architecture/9_architecture_decisions.md#adr-007-frontend-framework), [ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)). In development the dev-server proxy gives frontend and backend one origin; otherwise CORS is
+configured explicitly with credentials and a fixed allowed origin, never a wildcard ([ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept)).
 
 Known limits: the frontend policy was checked in a Chromium-based browser only; other browsers ignore
 `require-trusted-types-for`. HSTS was tested with a forwarded-HTTPS request, not over real TLS; behind a TLS-terminating
@@ -69,7 +69,7 @@ defined timeout and re-authentication policies. When cookie-based authentication
 must be protected against Cross-Site Request Forgery (CSRF) through SameSite policies, token patterns, or
 Origin/Referer validation.
 
-ADR-008 defines the concrete model:
+[ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept) defines the concrete model:
 
 - Server-side session identified by a session cookie with `HttpOnly`, `Secure` and `SameSite=Strict`. The session ID is
   regenerated on login. It is never handled by frontend code and never transmitted via URLs.
@@ -95,10 +95,10 @@ client-side code and thereby impair application security.
 A deliberate dependency strategy should therefore be adopted: only necessary libraries, fixed
 versions instead of uncontrolled "latest" references, regular updates and automated checks for known vulnerabilities.
 
-Concretely (ADR-011): lockfiles (`package-lock.json`) and fixed versions in `pom.xml`, OSV-Scanner for both, gitleaks
+Concretely ([ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)): lockfiles (`package-lock.json`) and fixed versions in `pom.xml`, OSV-Scanner for both, gitleaks
 for committed secrets, oasdiff for breaking API changes and Spectral for the OpenAPI specification. GitHub Actions are
 pinned to a commit SHA and run with minimal workflow permissions. The OpenAPI Generator version is pinned exactly and
-updated only through deliberate PRs (ADR-010). Generated code is excluded from handwritten-code lint rules where
+updated only through deliberate PRs ([ADR-010](../architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)). Generated code is excluded from handwritten-code lint rules where
 appropriate, but not from dependency and secret scans. Optional stage 2 checks (licence check, Schemathesis, OWASP
 Dependency-Check) are added if capacity remains.
 

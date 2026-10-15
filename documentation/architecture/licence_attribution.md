@@ -37,7 +37,7 @@ repository; CI rebuilds it on every run. The pinned commit lies on the `main` br
 source is not part of this repository. Raising the pin goes through the maintainer gate (check `use-core-pin`, see
 [guidelines.md](../guidelines.md)). USE_NEXT is licensed under the GPLv3. The intended licence of the USE project is GPL
 version 3 or later. As long as the upstream headers at the pinned commit are unchanged, they state GPL version 2 or (at
-your option) any later version (source cited in ADR-009); `use-core` is used under the GPLv3, which the "or later"
+your option) any later version (source cited in [ADR-009](9_architecture_decisions.md#adr-009-backend-language-framework-and-integration-of-use-core)); `use-core` is used under the GPLv3, which the "or later"
 wording permits.
 `use-core` is not modified.
 

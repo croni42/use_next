@@ -4,7 +4,7 @@ These guidelines relate to the backend container `use-back` and are derived from
 the [architecture](../architecture/0_architecture_overview.md)
 and the [backend requirements](backend_requirements.md) for **USE_NEXT**. They define project-specific rules intended to
 ensure that the backend supports the planned architecture in a stable, secure and maintainable way. The technology
-decisions are documented in ADR-008 to ADR-011 in the [ADRs](../architecture/9_architecture_decisions.md).
+decisions are documented in [ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept) to [ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model) in the [ADRs](../architecture/9_architecture_decisions.md).
 
 ***
 
@@ -14,11 +14,11 @@ decisions are documented in ADR-008 to ADR-011 in the [ADRs](../architecture/9_a
   system).
 - The backend is implemented in **Java 21** with **Spring Boot 4.1.x (Spring MVC)** and built with **Maven** (Maven
   Wrapper). Spring Security (sessions, CSRF) and Bean Validation are used. A deviation from the chosen Spring Boot line
-  requires an update of ADR-009.
+  requires an update of [ADR-009](../architecture/9_architecture_decisions.md#adr-009-backend-language-framework-and-integration-of-use-core).
 - For communication with the frontend, the backend provides an internal HTTP API that is fully and bindingly described
   by an OpenAPI specification.
 - `use-core` is integrated **in-process** through one dedicated adapter package. This package is the only place that
-  imports `org.tzi.use.*` (BR-02).
+  imports `org.tzi.use.*` ([BR-02](backend_requirements.md#br-02)).
 
 ***
 
@@ -44,7 +44,7 @@ decisions are documented in ADR-008 to ADR-011 in the [ADRs](../architecture/9_a
 - The OpenAPI specification is the single source of truth for request/response structures, error codes and security
   schemes. Changes without coordinated versioning are not permitted.
 - Server interfaces are generated at build time with OpenAPI Generator (`spring` generator, option `interfaceOnly`) and
-  are **not committed**. Controllers implement the generated interfaces and must not bypass them (ADR-010). The
+  are **not committed**. Controllers implement the generated interfaces and must not bypass them ([ADR-010](../architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)). The
   generator version is pinned exactly.
 - Every API change must follow a controlled evolution strategy (versioning, explicit deprecation,
   migration notes) to avoid contract drift with the frontend. oasdiff checks for breaking changes against `main` in CI.
@@ -57,31 +57,31 @@ decisions are documented in ADR-008 to ADR-011 in the [ADRs](../architecture/9_a
 ## 4. Validation, authentication and authorisation
 
 - Security-relevant and technically critical input must be validated server-side by the backend (Bean Validation).
-  Client-side validation serves usability only (BR-06).
+  Client-side validation serves usability only ([BR-06](backend_requirements.md#br-06)).
 - Authorization must be enforced fully in the backend. UI-based restrictions must never be the sole protection
-  mechanism (BR-07).
-- Authentication follows ADR-008: a login operation defined in the OpenAPI specification creates a server-side session
+  mechanism ([BR-07](backend_requirements.md#br-07)).
+- Authentication follows [ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept): a login operation defined in the OpenAPI specification creates a server-side session
   and sets a session cookie with `HttpOnly`, `Secure` and `SameSite=Strict`. The session ID is regenerated on login.
 - The method is documented in the OpenAPI specification as an `apiKey` security scheme located in a cookie and
   referenced by all protected operations. The required CSRF header is documented there as well. An `apiKey` in query
-  parameters is not allowed (BR-08).
-- Sessions expire after 30 minutes of inactivity (configurable). Logout invalidates the session on the server (BR-11).
+  parameters is not allowed ([BR-08](backend_requirements.md#br-08)).
+- Sessions expire after 30 minutes of inactivity (configurable). Logout invalidates the session on the server ([BR-11](backend_requirements.md#br-11)).
   Sessions are held in server memory and end on backend restart.
 - State-changing requests are protected by CSRF tokens using Spring Security's CSRF protection. The backend provides the
-  token; the frontend sends it in a request header (BR-09).
+  token; the frontend sends it in a request header ([BR-09](backend_requirements.md#br-09)).
 - Unauthenticated access returns 401. User management is minimal (a configured user with a hashed password, no
   registration).
-- Token-based authentication (bearer token) is not used. Introducing it requires an update of ADR-008.
+- Token-based authentication (bearer token) is not used. Introducing it requires an update of [ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept).
 
 ***
 
 ## 5. Security and data handling
 
 - Session IDs, tokens and other sensitive data must not be transmitted via URLs (including query parameters or
-  fragments) to avoid leakage through logs, browser history and referrers (BR-10).
+  fragments) to avoid leakage through logs, browser history and referrers ([BR-10](backend_requirements.md#br-10)).
 - The backend must provide suitable security-related HTTP headers (e.g. CSP, clickjacking protection, HSTS), so
   that the browser protection mechanisms intended in the frontend are effectively supported. Integration tests verify
-  these headers (BR-13).
+  these headers ([BR-13](backend_requirements.md#br-13)).
 - Headers are written by two filter chains in `SecurityConfig` that share one header method: `/api/**` and everything
   else (the static files of the `use-web` production build). Only the Content-Security-Policy differs. Do not set
   security headers anywhere else.
@@ -97,7 +97,7 @@ decisions are documented in ADR-008 to ADR-011 in the [ADRs](../architecture/9_a
 - The `Secure` cookie attribute is required whenever the application is served over HTTPS. Its handling for local
   development over plain HTTP is documented in the implementation.
 - Error responses, especially in security contexts (authentication errors, access denied), should provide sufficient
-  information for the UI without disclosing internal details or implementation information (BR-12).
+  information for the UI without disclosing internal details or implementation information ([BR-12](backend_requirements.md#br-12)).
 - Tests cover at least: unauthenticated access returns 401; expired and invalidated sessions are rejected; a
   state-changing request without a valid CSRF token is rejected; cookie attributes are set; the session ID changes on
   login.
@@ -127,23 +127,23 @@ decisions are documented in ADR-008 to ADR-011 in the [ADRs](../architecture/9_a
 
 - The backend must follow a controlled dependency policy (review of new dependencies, fixed versions,
   regular vulnerability checks), because supply-chain risks affect the stability and security of both frontend and
-  backend (BR-15). OSV-Scanner covers `pom.xml` in CI; gitleaks scans for secrets.
+  backend ([BR-15](backend_requirements.md#br-15)). OSV-Scanner covers `pom.xml` in CI; gitleaks scans for secrets.
 - The build and CI setup must ensure that the OpenAPI specification and the API implementation remain consistent
   (generated interfaces at build time, Spectral linting, oasdiff). Detected discrepancies must be resolved before merge.
 - Security-relevant configurations (e.g. CORS, CSP, session settings) are checked automatically by integration tests
-  (stage 1 of ADR-011).
+  (stage 1 of [ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)).
 - The Maven Wrapper is used for all builds; no globally installed Maven is required.
 
 ***
 
 ## 8. Quality and operations guidelines
 
-- The backend must be integrated into automated quality and security checks (stage 1 of ADR-011: security header,
+- The backend must be integrated into automated quality and security checks (stage 1 of [ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model): security header,
   session and CSRF tests, architecture test, dependency scanning). All checks can be run locally with one command.
 - Logging and monitoring should be designed so that security-relevant events are detectable without storing sensitive
   data (passwords, session IDs, CSRF tokens) in the logs.
 - Standardized error and timeout handling is required to support a consistent UX in the frontend and to make technical
-  issues visible at an early stage (BR-16).
+  issues visible at an early stage ([BR-16](backend_requirements.md#br-16)).
 
 ### Resource limits for expression evaluation (BR-17)
 
@@ -158,7 +158,7 @@ web layer alone:
   request (`usenext.ocl.timeout`), configured in `application.properties`. A timed-out evaluation is cancelled; the
   adapter checks the interrupt flag at every iteration step because `use-core` does not.
 - Rejection: a timeout or a full pool is answered with 503 and `Retry-After`; the response body is a minimal problem
-  object (BR-12, BR-16). Tests: `longRunningExpressionTimesOutAndTheServerStaysResponsive` and
+  object ([BR-12](backend_requirements.md#br-12), [BR-16](backend_requirements.md#br-16)). Tests: `longRunningExpressionTimesOutAndTheServerStaysResponsive` and
   `rejectsImmediatelyWhenAllSlotsAreBusy`.
 - Memory: `use-core` cannot limit memory itself. The documented start commands set `-Xmx512m` (`pom.xml` for
   `spring-boot:run`, the packaged jar needs it on the `java` command line, see `AGENTS.md`). The adapter maps an
@@ -189,7 +189,7 @@ limiting) are described in
 - Before adding new containers, layers, or major modules in the backend, the impact on arc42 documentation (
   [building block view](../architecture/5_building_block.md), [solution strategy](../architecture/4_solution_strategy.md),
   [risks](../architecture/11_risks_technical_debts.md)) must be analysed and documented.
-- Known later extensions: shared session store and user database (FR-23). These are not part of the current scope.
+- Known later extensions: shared session store and user database ([FR-23](../frontend/frontend_requirements.md#fr-23)). These are not part of the current scope.
 - Open backend-related risks and technical debts (e.g. technology choices, incomplete validation, `use-core` concurrency
   behaviour) must be tracked in the [risk documentation](../architecture/11_risks_technical_debts.md) and referenced
   from relevant PRs.

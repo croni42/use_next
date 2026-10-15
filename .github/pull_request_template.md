@@ -10,8 +10,8 @@
 
 ## Manual review (not covered by CI)
 
-- [ ] Reviewer looked at the hand-written code: no token, session information or other sensitive value in a URL query (FR-17).
-- [ ] Any new evaluation path still limits expression length, result size and evaluation time (BR-16, BR-17).
+- [ ] Reviewer looked at the hand-written code: no token, session information or other sensitive value in a URL query ([FR-17](../documentation/frontend/frontend_requirements.md#fr-17)).
+- [ ] Any new evaluation path still limits expression length, result size and evaluation time ([BR-16](../documentation/backend/backend_requirements.md#br-16), [BR-17](../documentation/backend/backend_requirements.md#br-17)).
 - [ ] `use-core` pin changed? If yes: old and new commit, licence headers re-read, tests green, approved by a maintainer.
 
 ## AI assistance

@@ -29,11 +29,11 @@ The technology stack is fixed by ADRs. Deviations require a new or amended ADR (
 | Area                | Decision                                                                                  | ADR                                                                          |
 |---------------------|-------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
 | Frontend            | React and TypeScript (strict mode), Vite as build tool                                    | [ADR-007](architecture/9_architecture_decisions.md#adr-007-frontend-framework) |
-| Backend             | Java 21, Spring Boot 4.1.x (Spring MVC), Maven (Maven Wrapper)                            | ADR-009                                                                      |
-| Core integration    | `use-core` in-process through one adapter package; only this package imports `org.tzi.use.*` | ADR-009, ADR-003                                                          |
-| API contract        | One OpenAPI file, spec-first; OpenAPI Generator for server interfaces and TypeScript client | ADR-006, ADR-010                                                           |
-| Authentication      | Server-side session with session cookie, CSRF token for state-changing requests           | ADR-008                                                                      |
-| CI                  | GitHub Actions; every check is runnable locally with one command                          | ADR-011                                                                      |
+| Backend             | Java 21, Spring Boot 4.1.x (Spring MVC), Maven (Maven Wrapper)                            | [ADR-009](architecture/9_architecture_decisions.md#adr-009-backend-language-framework-and-integration-of-use-core)                                                                      |
+| Core integration    | `use-core` in-process through one adapter package; only this package imports `org.tzi.use.*` | [ADR-009](architecture/9_architecture_decisions.md#adr-009-backend-language-framework-and-integration-of-use-core), [ADR-003](architecture/9_architecture_decisions.md#adr-003-backend-as-wrapper-around-use-core)                                                          |
+| API contract        | One OpenAPI file, spec-first; OpenAPI Generator for server interfaces and TypeScript client | [ADR-006](architecture/9_architecture_decisions.md#adr-006-openapi-based-code-generation-for-api-stability), [ADR-010](architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)                                                           |
+| Authentication      | Server-side session with session cookie, CSRF token for state-changing requests           | [ADR-008](architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept)                                                                      |
+| CI                  | GitHub Actions; every check is runnable locally with one command                          | [ADR-011](architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)                                                                      |
 
 Required local toolchain: JDK 21, Node.js (LTS), Maven Wrapper and npm. No Docker, accounts or API keys are needed for
 the mandatory checks.
@@ -46,7 +46,7 @@ the mandatory checks.
   in [constraints](architecture/2_constraints.md) (modularisation, component-oriented, well-defined interfaces).
 - For new modules/components, it must be checked into which existing building block they logically belong.
 - Contract changes always start in the OpenAPI specification. Controllers implement the generated interfaces; the
-  frontend uses the generated client (ADR-006, ADR-010).
+  frontend uses the generated client ([ADR-006](architecture/9_architecture_decisions.md#adr-006-openapi-based-code-generation-for-api-stability), [ADR-010](architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)).
 - Routing and further libraries are chosen during implementation and documented in the PR that introduces them (fixed
   version, licence check). The test runner (currently Vitest) can be replaced without an ADR as long as the CI test job
   and the test coverage of the requirements are kept.
@@ -71,7 +71,7 @@ the mandatory checks.
 
 ## 5. Quality Assurance, PRs, and Pipelines
 
-CI runs on GitHub Actions (ADR-011). Workflows only call commands that can be executed locally. Branch protection
+CI runs on GitHub Actions ([ADR-011](architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)). Workflows only call commands that can be executed locally. Branch protection
 requires the stage 1 checks before merge.
 
 **Stage 1 (mandatory):** the workflow `.github/workflows/stage1.yml` runs seven jobs on pull requests (drafts included),
@@ -80,7 +80,7 @@ starting the workflow by hand; plain pushes to other branches do not start it:
 
 | Job            | Checks                                                                                                              |
 |----------------|---------------------------------------------------------------------------------------------------------------------|
-| `backend`      | Builds `use-core` from the pinned commit, then `./mvnw verify`: all backend tests, including security header (BR-13), session and CSRF (BR-09, BR-11) integration tests and the architecture test for the adapter boundary (BR-02). |
+| `backend`      | Builds `use-core` from the pinned commit, then `./mvnw verify`: all backend tests, including security header ([BR-13](backend/backend_requirements.md#br-13)), session and CSRF ([BR-09](backend/backend_requirements.md#br-09), [BR-11](backend/backend_requirements.md#br-11)) integration tests and the architecture test for the adapter boundary ([BR-02](backend/backend_requirements.md#br-02)). |
 | `frontend`     | `npm ci`, unit tests, ESLint with TypeScript and React security rules (unsafe DOM sinks are flagged), Prettier check, production build, the CSP build check (`scripts/check-csp-build.mjs`) and the context file check (`scripts/check-context-files.mjs`, with its tests): it fails when `AGENTS.md` contains invisible or bidirectional Unicode characters. The tests of the report renderer for the three scanner jobs (`scripts/security-report.test.mjs`) run here too. |
 | `drift`        | `scripts/check-drift.sh`: the generated TypeScript client is regenerated and the job fails on any difference to the committed files. |
 | `openapi-lint` | Spectral with `openapi/.spectral.yaml`, including the rule that `apiKey` is only allowed in cookies, never in query parameters. |
@@ -99,8 +99,8 @@ first lines of the output of a failed check, and shows a check that did not run 
 Locally, `scripts/check-stage1.sh` still stops at the first failure.
 
 A green pipeline does not mean that every rule was checked. Two cases are not covered by any job: a CSRF token or other
-sensitive value that hand-written code places in a URL query (FR-17), and a missing or too generous limit on expression
-length, result size or evaluation time (BR-16, BR-17). The manual review covers them, using the checklist "Manual review
+sensitive value that hand-written code places in a URL query ([FR-17](frontend/frontend_requirements.md#fr-17)), and a missing or too generous limit on expression
+length, result size or evaluation time ([BR-16](backend/backend_requirements.md#br-16), [BR-17](backend/backend_requirements.md#br-17)). The manual review covers them, using the checklist "Manual review
 (not covered by CI)" in the [pull request template](../.github/pull_request_template.md).
 
 **The `use-core` pin:** `use-core` is not part of this repository. It is built from the upstream commit pinned in
@@ -141,11 +141,11 @@ Schemathesis), OWASP Dependency-Check.
 
 - Security is treated as a cross-cutting concern. Fundamental principles are established
   in [solution_strategy](architecture/4_solution_strategy.md) (Security Decisions)
-  and [architecture_decisions](architecture/9_architecture_decisions.md) (especially ADR-005, ADR-008, ADR-011).
+  and [architecture_decisions](architecture/9_architecture_decisions.md) (especially [ADR-005](architecture/9_architecture_decisions.md#adr-005-security-through-central-rules-instead-of-distributed-individual-measures), [ADR-008](architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept), [ADR-011](architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)).
 - Both frontend and backend implementations consider:
     - secure processing and rendering of external data,
     - controlled communication between frontend and backend (OpenAPI-based, generated client),
-    - the session model of ADR-008: `HttpOnly`, `Secure`, `SameSite=Strict` session cookie, 30 minutes inactivity
+    - the session model of [ADR-008](architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept): `HttpOnly`, `Secure`, `SameSite=Strict` session cookie, 30 minutes inactivity
       timeout, CSRF token for state-changing requests, no session data in URLs,
     - conservative handling of error messages,
     - disciplined use of external dependencies (fixed versions, lockfiles, OSV-Scanner, gitleaks).

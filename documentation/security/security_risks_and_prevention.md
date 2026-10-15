@@ -19,7 +19,7 @@ structures or when unsafe DOM manipulations are permitted. Countermeasures in th
 consistent escaping and the avoidance of insecure HTML rendering. Modern browsers additionally support Trusted Types
 as an enforcement layer. Restricting which values may be passed to unsafe DOM sinks and thereby preventing entire
 classes of DOM-based XSS at the platform level. React escapes values rendered through JSX by default and
-`dangerouslySetInnerHTML` is the single explicit unsafe sink, which ESLint rules ban or centralise (ADR-007). At the
+`dangerouslySetInnerHTML` is the single explicit unsafe sink, which ESLint rules ban or centralise ([ADR-007](../architecture/9_architecture_decisions.md#adr-007-frontend-framework)). At the
 same time, a dependency on the backend remains, as incoming
 data must also be validated and securely prepared there.
 
@@ -89,7 +89,7 @@ application source code. insufficiently hardened CI/CD pipelines can be manipula
 A deliberate dependency strategy with lockfile discipline, a minimal dependency footprint, automated vulnerability
 checks, and hardened pipeline configurations reduces this risk but cannot eliminate it entirely.
 
-In the chosen toolchain (ADR-011) this is addressed by lockfiles and fixed versions, OSV-Scanner for `pom.xml` and
+In the chosen toolchain ([ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)) this is addressed by lockfiles and fixed versions, OSV-Scanner for `pom.xml` and
 `package-lock.json`, gitleaks, SHA-pinned GitHub Actions with minimal permissions, and a pinned OpenAPI Generator
 version. The generated client is committed and its drift is checked in CI, so unreviewed generator output cannot enter
 the code base silently.
@@ -115,8 +115,8 @@ misconfigured server header into an attack vector regardless of how secure the f
 
 A restrictive default configuration must be defined from the outset, deliberately reviewed as part of deployment,
 and validated automatically in CI/CD pipelines. Backend integration tests verify the security headers against the
-production build (BR-13). If frontend and backend run on different origins, CORS is configured with credentials and a
-fixed allowed origin, never a wildcard (ADR-008).
+production build ([BR-13](../backend/backend_requirements.md#br-13)). If frontend and backend run on different origins, CORS is configured with credentials and a
+fixed allowed origin, never a wildcard ([ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept)).
 
 > Prevention: [S3](../references.md#s3), [S33](../references.md#s33), [S40](/documentation/references.md#s40)
 >
@@ -131,7 +131,7 @@ them to leakage through browser history, server logs, and Referer headers. Missi
 (Secure, HttpOnly, SameSite) leave tokens vulnerable to interception. Absent or overly generous timeout policies
 extend the window of exposure for compromised sessions.
 
-These risks are relevant because cookie-based authentication is used (ADR-008
+These risks are relevant because cookie-based authentication is used ([ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept)
 see [ADRs](../architecture/9_architecture_decisions.md)). The session model is defined in the OpenAPI security
 scheme (`apiKey` in a cookie, never in query parameters) to ensure a consistent and auditable contract between
 frontend and backend.
@@ -158,9 +158,9 @@ request layer.
 
 Effective mitigations include the SameSite cookie attribute (Lax or Strict), synchronizer token patterns, and
 Origin/Referer header validation for state-changing requests. The chosen approach aligns with the session model
-defined in the OpenAPI security scheme (ADR-008): `SameSite=Strict` on the session cookie plus a CSRF token provided
+defined in the OpenAPI security scheme ([ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept)): `SameSite=Strict` on the session cookie plus a CSRF token provided
 by the backend (Spring Security) and sent by the frontend communication layer in a request header. CSRF protection is
-mandatory and covered by integration tests (BR-09).
+mandatory and covered by integration tests ([BR-09](../backend/backend_requirements.md#br-09)).
 
 > Prevention: [S20](../references.md#s20)
 >
@@ -175,7 +175,7 @@ application. A single request can therefore consume CPU time, memory or worker t
 ranges or deeply nested collection operations) and make the service unavailable for everyone. `use-core` offers no
 limits or cancellation of its own.
 
-Prevention (BR-17, see [backend_guidelines.md](../backend/backend_guidelines.md#resource-limits-for-expression-evaluation-br-17)):
+Prevention ([BR-17](../backend/backend_requirements.md#br-17), see [backend_guidelines.md](../backend/backend_guidelines.md#resource-limits-for-expression-evaluation-br-17)):
 bounded expression length and result length, a bounded pool with a queue and a hard time limit per request, range
 bounds restricted to small integer literals, cancellation of timed-out evaluations at every iteration step, rejection
 with 503 and `Retry-After` when the time limit is exceeded or the pool is full, and a heap limit (`-Xmx512m`) in the

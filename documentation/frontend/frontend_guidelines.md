@@ -3,7 +3,7 @@
 These guidelines apply specifically to the frontend container `use-web` and are derived from the frontend
 requirements, the overall [USE_NEXT guidelines](../guidelines.md), and the architecture and security decisions
 documented in the [arc42 artefacts](../architecture/0_architecture_overview.md). The technology decisions are
-documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-frontend-framework) and ADR-010.
+documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-frontend-framework) and [ADR-010](../architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator).
 
 ***
 
@@ -14,12 +14,12 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - The frontend is implemented with **React and TypeScript** (strict mode). **Vite** is the build tool.
 - Node.js (LTS) is required in addition to the JDK. Package manager is npm; `package-lock.json` is committed.
 - Application state is handled with React's built-in mechanisms first (state, context, reducers). Additional
-  state-management or UI libraries are introduced only with a documented reason in the introducing PR (FR-21).
+  state-management or UI libraries are introduced only with a documented reason in the introducing PR ([FR-21](frontend_requirements.md#fr-21)).
 - The test runner is currently Vitest with Testing Library and jsdom. It can be replaced without an ADR as long as the
   CI test job and the test coverage of the requirements are kept. No routing library is a dependency yet; routing and further
   libraries are documented in the PR that introduces them (fixed version, licence check).
 - The dev server differs from the production build. The Content-Security-Policy is sent only by the production build as
-  served by `use-back`, not by the Vite dev server. Header checks (BR-13) run against `use-back` (integration tests) and
+  served by `use-back`, not by the Vite dev server. Header checks ([BR-13](../backend/backend_requirements.md#br-13)) run against `use-back` (integration tests) and
   against the build output (`scripts/check-csp-build.mjs`).
 - Framework-specific details follow the React community conventions. This document defines project-specific rules on
   top.
@@ -49,7 +49,7 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - The OpenAPI specification is the single source of truth for request/response structures and security schemes.
   Deviations are not allowed without an accepted [ADR](../architecture/9_architecture_decisions.md).
 - The API client is generated with OpenAPI Generator (`typescript-fetch`; `typescript-axios` only if documented in the
-  implementing PR, ADR-010). The generated client is **committed** and is the only access path to the API. Handwritten
+  implementing PR, [ADR-010](../architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)). The generated client is **committed** and is the only access path to the API. Handwritten
   HTTP calls (e.g. ad hoc `fetch`) are not allowed.
 - Generated code is never edited by hand. Contract changes start in the OpenAPI specification; the client is
   regenerated in the same change set. CI regenerates the client and fails on any difference to the committed files
@@ -57,7 +57,7 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - Request handling, response mapping, and technical error processing must be centralised in the communication layer (
   e.g. API service module) and must not be duplicated across UI components.
 - The communication layer is configured once to send the session cookie (credentials) and the CSRF header on
-  state-changing requests (ADR-008, FR-13). The one exception to the generated client is the single repeat of a request
+  state-changing requests ([ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept), [FR-13](frontend_requirements.md#fr-13)). The one exception to the generated client is the single repeat of a request
   after a 403 (stale CSRF token) in `use-web/src/api-client.ts`: it uses the global `fetch` inside the middleware,
   because `context.fetch` would run the middleware again and could loop.
 - The communication layer must provide uniform types for result states (e.g. “success”, “error”, “loading” or result
@@ -65,13 +65,13 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - For security-relevant endpoints (e.g. auth-related requests), the communication layer must provide standardised error
   paths so that UI components can clearly distinguish between “Not authenticated” (401) and “Forbidden” (403), for
   example, without having to evaluate HTTP status codes manually.
-- In development, the Vite dev-server proxy is used so that frontend and backend share one origin (ADR-008).
-- The generated client and the compiler options (ADR-010): the generated code does not satisfy `noUnusedLocals`,
+- In development, the Vite dev-server proxy is used so that frontend and backend share one origin ([ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept)).
+- The generated client and the compiler options ([ADR-010](../architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)): the generated code does not satisfy `noUnusedLocals`,
   `noUnusedParameters` and `erasableSyntaxOnly` (unused imports and parameters, parameter properties in
   `runtime.ts`), so these three options of the Vite template are not set in `tsconfig.app.json`; `strict` is. The
   handwritten code is compatible with all three, and ESLint (`@typescript-eslint/no-unused-vars`) covers unused
   variables there; ESLint excludes `src/api/**`.
-- Known limitations of the generated client (ADR-010):
+- Known limitations of the generated client ([ADR-010](../architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)):
   - A failed call throws a `ResponseError` without a typed status. The `Problem` body is not mapped to the error; the
     communication layer reads status and body from `error.response` (`errorStatus`, `problemDetail`).
   - The generated client contains explicit `any`; its JSON mapping functions take `any`, so responses are not checked
@@ -99,9 +99,9 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 ## 5. Security and Data Handling
 
 - Untrusted data from backend responses or external sources must be rendered safely by default. JSX escapes values
-  rendered through it; this default must not be circumvented (FR-14).
+  rendered through it; this default must not be circumvented ([FR-14](frontend_requirements.md#fr-14)).
 - `dangerouslySetInnerHTML` and other direct DOM sinks (`innerHTML`, `outerHTML`, `document.write`) are prohibited
-  unless explicitly justified and handled via the single central sanitisation component (FR-15, FR-16). ESLint rules
+  unless explicitly justified and handled via the single central sanitisation component ([FR-15](frontend_requirements.md#fr-15), [FR-16](frontend_requirements.md#fr-16)). ESLint rules
   flag unsafe sinks and are part of the mandatory CI checks.
 - Sanitisation logic must be centralised.
 - Trusted Types are enabled together with a restrictive CSP where the browser supports them. The production CSP
@@ -111,21 +111,21 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
   `javascript:` URLs, no `data:` URIs (`build.assetsInlineLimit` is 0 in `vite.config.ts`) and no external origins. The
   build check `scripts/check-csp-build.mjs` fails on any of these; it runs in the `frontend` CI job and in
   `scripts/check-stage1.sh`.
-- Authentication uses the server-side session of ADR-008. The session cookie is `HttpOnly` and therefore never read,
+- Authentication uses the server-side session of [ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept). The session cookie is `HttpOnly` and therefore never read,
   stored or set by frontend code. Session identifiers and tokens are not stored in `localStorage`/`sessionStorage` and
-  are never transmitted via URLs (including query parameters or fragments) (FR-17).
+  are never transmitted via URLs (including query parameters or fragments) ([FR-17](frontend_requirements.md#fr-17)).
 - State-changing requests carry the CSRF token in the request header defined in the OpenAPI specification. The token is
   handled only in the communication layer.
 - The frontend implements authentication exactly as defined by the OpenAPI security scheme (`apiKey` in a cookie)
-  (FR-18).
+  ([FR-18](frontend_requirements.md#fr-18)).
 - An XSS during an active session can still send requests within that session. Therefore the XSS rules above are
   mandatory even though the cookie cannot be read by JavaScript.
 - Security-relevant and business-critical validation (e.g. authorisation checks, mandatory constraints) remains a
   backend responsibility. Client-side validation is only supportive and must not be relied upon for
-  enforcement (FR-19).
+  enforcement ([FR-19](frontend_requirements.md#fr-19)).
 - Error messages for security-relevant situations (authentication failures, access denied, technical errors) must be
   presented in a controlled way that avoids leaking internal details while still being understandable for
-  users (FR-20).
+  users ([FR-20](frontend_requirements.md#fr-20)).
 
 > See [security_risks_and_prevention.md](../security/security_risks_and_prevention.md) for more Information about
 > possible Security Risks and Prevention Techniques
@@ -135,13 +135,13 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 ## 6. Dependency and Build Guidelines
 
 - The frontend must use a controlled set of dependencies. New third-party libraries require justification with respect
-  to maintenance effort and security footprint, a fixed version and a licence check (FR-21).
+  to maintenance effort and security footprint, a fixed version and a licence check ([FR-21](frontend_requirements.md#fr-21)).
 - Dependencies are pinned and installed from the lockfile. OSV-Scanner covers `package-lock.json` in CI; gitleaks scans
   for secrets.
-- Mandatory checks (ADR-011, stage 1) include ESLint 9 (flat config `eslint.config.js`) with TypeScript and React
+- Mandatory checks ([ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model), stage 1) include ESLint 9 (flat config `eslint.config.js`) with TypeScript and React
   security rules, Prettier (`npm run format:check`), the production build, the CSP build check, the drift check of the
   generated client and Spectral linting of the OpenAPI specification. Source maps are not published to production.
-- The OpenAPI Generator version is pinned exactly; updates are deliberate PRs (ADR-010).
+- The OpenAPI Generator version is pinned exactly; updates are deliberate PRs ([ADR-010](../architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)).
 - Generated code is excluded from handwritten-code lint rules where appropriate, but not from dependency and secret
   scans.
 - Discrepancies between OpenAPI specification and generated client detected in CI must be fixed before merge.
