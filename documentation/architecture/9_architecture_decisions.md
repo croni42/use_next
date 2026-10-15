@@ -71,8 +71,6 @@ the target architecture.
   - Changes to the API require updating the OpenAPI spec and regenerating the code, not rewriting API logic by hand.
   - Tooling dependency (OpenAPI Generator, see [ADR-010](#adr-010-openapi-code-generation--scope-and-generator)) is part of the build pipeline.
 
-[//]: # (TODO update references to FR or BR)
-[//]: # (TODO fix semicolons used by ai, maybe also shorten ADRs)
 ## ADR-007: Frontend Framework
 
 - **Status:** Accepted
