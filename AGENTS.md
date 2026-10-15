@@ -85,7 +85,6 @@ All documentation lives under `documentation/`. Key files:
 - [security/security.md](documentation/security/security.md) — security measures with reference backing
 - [security/security_risks_and_prevention.md](documentation/security/security_risks_and_prevention.md) — risk catalog with mitigations
 - [references.md](documentation/references.md) — external references
-- `documentation/future/` ([arc_principles.md](documentation/future/arc_principles.md), [automation.md](documentation/future/automation.md)) — **future work (TODO)**; not binding yet, do not treat as accepted rules
 
 ## Architecture Decision Rules (ADRs)
 

@@ -40,7 +40,7 @@ technology decisions are made. Implementation steps will be based on these docum
 | Authentication   | Server-side session with `HttpOnly`, `Secure`, `SameSite=Strict` cookie and CSRF token |
 | CI               | GitHub Actions, staged checks that can be run locally                            |
 
-Required toolchain: JDK 21 and Node.js (LTS). Details and rationale:
+Required toolchain: JDK 21 and Node.js 24 or later. Details and rationale:
 [ADRs](documentation/architecture/9_architecture_decisions.md).
 
 # Documentation
@@ -60,7 +60,7 @@ changes or adding new components.
 The architecture documentation defines the technical foundation and target architecture of USE_NEXT. It captures the
 main architectural goals, decisions, and building blocks and serves as the basis for the further development of the
 system.
-> - [Architecture summary arc42 (0_architecture.md)](documentation/architecture/0_architecture_overview.md)
+> - [Architecture summary arc42 (0_architecture_overview.md)](documentation/architecture/0_architecture_overview.md)
 
 ### Frontend
 

@@ -12,7 +12,7 @@ documented in [ADR-007](../architecture/9_architecture_decisions.md#adr-007-fron
 - The frontend `use-web` is a browser-based UI that communicates exclusively with the backend `use-back` via the
   internal API (generated from the OpenAPI contract).
 - The frontend is implemented with **React and TypeScript** (strict mode). **Vite** is the build tool.
-- Node.js (LTS) is required in addition to the JDK. Package manager is npm; `package-lock.json` is committed.
+- Node.js 24 or later is required in addition to the JDK (`engines` in `use-web/package.json`, `node-version: '24'` in CI). Package manager is npm; `package-lock.json` is committed.
 - Application state is handled with React's built-in mechanisms first (state, context, reducers). Additional
   state-management or UI libraries are introduced only with a documented reason in the introducing PR ([FR-21](frontend_requirements.md#fr-21)).
 - The test runner is currently Vitest with Testing Library and jsdom. It can be replaced without an ADR as long as the

@@ -9,7 +9,7 @@
 ## Target Architecture
 
 > Detailed architecture documentation found
-> here: [Architecture summary arc42 (0_architecture.md)](../architecture/0_architecture_overview.md)
+> here: [Architecture summary arc42 (0_architecture_overview.md)](../architecture/0_architecture_overview.md)
 
 The target architecture of **USE_NEXT** follows a clear separation between frontend, backend, and the reused
 `use-core`. The frontend is responsible for presentation, user interaction, and client-side state handling, while the
