@@ -8,7 +8,7 @@ An AI-assisted change is a change in which a substantial part of the code, tests
 written by an AI tool. AI output is treated like code from any other untrusted source: it passes the same checks and the
 same review as everything else, and it never replaces them.
 
-Sources are listed in [references.md](references.md) (S42 to S51). The OWASP Top 10 for LLM Applications 2025
+Sources are listed in [references.md](references.md) (S42 to S44, S46 to S48 and S51). The OWASP Top 10 for LLM Applications 2025
 ([S47](references.md#s47)) is used as the classification framework (`LLM01:2025` to `LLM10:2025`).
 
 ## 1. Rules
