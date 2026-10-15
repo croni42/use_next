@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.tzi.use.parser.ocl.OCLCompiler;
 import org.tzi.use.parser.use.USECompiler;
@@ -46,6 +47,7 @@ class UseCoreConcurrencyTest {
         assertEquals(Map.of(ADAPTER_EXPECTED, THREADS * ITERATIONS), outcome.distinctResults());
     }
 
+    @Disabled("Experiment without assertion, kept for documentation; run by hand to see the output")
     @Test
     void sharedObjectGraphAcrossThreads() throws Exception {
         StringWriter sink = new StringWriter();
