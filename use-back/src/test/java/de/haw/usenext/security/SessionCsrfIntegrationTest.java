@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,16 @@ class SessionCsrfIntegrationTest {
     @Value("${local.server.port}")
     int port;
 
+    @Value("${server.servlet.session.timeout}")
+    Duration sessionTimeout;
+
     private final HttpClient http = HttpClient.newHttpClient();
+
+    /** The documented inactivity limit is 30 minutes; the test profile does not override it. */
+    @Test
+    void sessionTimeoutIsThirtyMinutes() {
+        assertEquals(Duration.ofMinutes(30), sessionTimeout);
+    }
 
     private HttpResponse<String> send(String method, String path, String cookie, String csrf, String body)
             throws Exception {
@@ -102,6 +112,7 @@ class SessionCsrfIntegrationTest {
         assertTrue(loginCookie.contains("HttpOnly"), loginCookie);
         assertTrue(loginCookie.contains("Secure"), loginCookie);
         assertTrue(loginCookie.contains("SameSite=Strict"), loginCookie);
+        assertTrue(loginCookie.contains("Path=/api"), loginCookie);
         String postLoginSession = sessionId(loginCookie);
         assertNotEquals(preLoginSession, postLoginSession);
 

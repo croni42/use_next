@@ -25,9 +25,9 @@ class OclEvaluationServiceTest {
         var service = new OclEvaluationService(expr -> "ok", Duration.ofSeconds(1), 1, 1);
         assertThrows(OclEvaluationException.class, () -> service.evaluate(""));
         assertThrows(OclEvaluationException.class, () -> service.evaluate(null));
-        assertThrows(OclEvaluationException.class,
-                () -> service.evaluate("1".repeat(OclEvaluationService.MAX_EXPRESSION_LENGTH + 1)));
-        assertEquals("ok", service.evaluate("1".repeat(OclEvaluationService.MAX_EXPRESSION_LENGTH)));
+        // literal values on purpose: the documented limit (1000 characters) must not follow a change of the constant
+        assertThrows(OclEvaluationException.class, () -> service.evaluate("1".repeat(1001)));
+        assertEquals("ok", service.evaluate("1".repeat(1000)));
     }
 
     @Test
