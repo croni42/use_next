@@ -30,7 +30,7 @@ See [https://arc42.org](https://arc42.org) for more information.
 
 ## use-core
 
-`use-back` depends on `org.tzi.use:use-core` (version 7.5.0), which is not published to Maven Central. It is built from
+`use-back` depends on `use-core` (version 7.5.0), which is not published to Maven Central. It is built from
 the pinned upstream commit `30d480dbcca2f404b1350039516a56f46c1efb1f` of
 [useocl/use](https://github.com/useocl/use) by `scripts/install-use-core.sh` and installed into the local Maven
 repository; CI rebuilds it on every run. The pinned commit lies on the `main` branch of `useocl/use`, and the `use-core`

@@ -22,7 +22,3 @@ where its licence information can be read upstream, at the commit that this proj
 - Changing the pin goes through the maintainer gate (check `use-core-pin`, see [guidelines.md](../guidelines.md)); the
   links above then have to be re-read for the new commit.
 
-## Not covered here
-
-The licences of the libraries that `use-core` itself depends on are listed and marked as not reviewed in
-[licence_attribution.md](licence_attribution.md#use-core).
