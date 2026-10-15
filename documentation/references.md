@@ -284,18 +284,6 @@ OWASP Foundation: LLM Prompt Injection Prevention Cheat Sheet. *OWASP Cheat Shee
 (n.d.). [https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html),
 retrieved 09.10.2026
 
-## S49
-
-Greshake, K., Abdelnabi, S., Mishra, S., Endres, C., Holz, T., Fritz, M.: Not what you've signed up for: Compromising
-Real-World LLM-Integrated Applications with Indirect Prompt Injection. *arXiv preprint* arXiv:2302.12173 (v2, May
-2023). [https://arxiv.org/abs/2302.12173](https://arxiv.org/abs/2302.12173), retrieved 09.10.2026
-
-## S50
-
-Debenedetti, E., Shumailov, I., Fan, T., Hayes, J., Carlini, N., Fabian, D., Kern, C., Shi, C., Terzis, A., Tramèr, F.:
-Defeating Prompt Injections by Design. *arXiv preprint* arXiv:2503.18813 (v2, Jun
-2025). [https://arxiv.org/abs/2503.18813](https://arxiv.org/abs/2503.18813), retrieved 09.10.2026
-
 ## S51
 
 National Institute of Standards and Technology (NIST): Secure Software Development Practices for Generative AI and
