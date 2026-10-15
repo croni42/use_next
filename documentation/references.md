@@ -264,12 +264,6 @@ Comprehensive Analysis of Package Hallucinations by Code Generating LLMs. In: *3
 (2025). arXiv:2406.10279 (v3). [https://arxiv.org/abs/2406.10279](https://arxiv.org/abs/2406.10279), retrieved
 09.10.2026
 
-## S45
-
-Veracode: *2025 GenAI Code Security Report*, press release of 30 Jul
-2025. [https://www.veracode.com/press-release/ai-generated-code-poses-major-security-risks-in-nearly-half-of-all-development-tasks-veracode-research-reveals/](https://www.veracode.com/press-release/ai-generated-code-poses-major-security-risks-in-nearly-half-of-all-development-tasks-veracode-research-reveals/),
-retrieved 09.10.2026. Vendor statement; only the press release was read, not the report.
-
 ## S46
 
 Lakshmanan, R.: New 'Rules File Backdoor' Attack Lets Hackers Inject Malicious Code via AI Code Editors (finding by
