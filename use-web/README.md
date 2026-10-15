@@ -19,16 +19,16 @@ Node.js 24 or newer (see `engines` in `package.json`). The backend must be runni
 
 Run from this directory.
 
-| Command                | Purpose                                                             |
-|------------------------|---------------------------------------------------------------------|
-| `npm ci`               | Install the pinned dependencies                                     |
-| `npm run dev`          | Vite dev server; proxies `/api` to `http://localhost:8080`          |
-| `npm test`             | Unit tests (Vitest)                                                 |
-| `npm run lint`         | ESLint                                                              |
-| `npm run format:check` | Prettier check (`npm run format` writes)                            |
-| `npm run lint:api`     | Spectral lint of `openapi/openapi.yaml`                             |
-| `npm run build`        | Type check and production build to `dist/`                          |
-| `npm run generate:api` | Regenerate the API client in `src/api/` from the OpenAPI spec       |
+| Command                | Purpose                                                       |
+| ---------------------- | ------------------------------------------------------------- |
+| `npm ci`               | Install the pinned dependencies                               |
+| `npm run dev`          | Vite dev server; proxies `/api` to `http://localhost:8080`    |
+| `npm test`             | Unit tests (Vitest)                                           |
+| `npm run lint`         | ESLint                                                        |
+| `npm run format:check` | Prettier check (`npm run format` writes)                      |
+| `npm run lint:api`     | Spectral lint of `openapi/openapi.yaml`                       |
+| `npm run build`        | Type check and production build to `dist/`                    |
+| `npm run generate:api` | Regenerate the API client in `src/api/` from the OpenAPI spec |
 
 ## Notes
 
