@@ -88,9 +88,9 @@ Relevant ADRs: <ADR numbers>
 
 ## 3. Check for hidden characters in context files (AI-11)
 
-Invisible Unicode characters (zero-width characters, bidirectional controls, tag characters, variation selectors) can
-hide instructions in the rules and context files of AI tools; this has been reported for the rules files of Cursor and
-GitHub Copilot ([S46](references.md#s46)).
+Invisible Unicode characters can hide instructions in the rules and context files of AI tools; this has been reported
+for zero-width joiners and bidirectional text markers in the rules files of Cursor and GitHub Copilot
+([S46](references.md#s46)). The check also covers tag characters and variation selectors.
 
 - `node scripts/check-context-files.mjs [file ...]` fails (exit code 1) and prints file, line, column and code point when
   a file contains a character of one of these classes: control (`Cc`), format (`Cf`), private-use (`Co`),

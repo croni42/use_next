@@ -269,7 +269,9 @@ Comprehensive Analysis of Package Hallucinations by Code Generating LLMs. In: *3
 Lakshmanan, R.: New 'Rules File Backdoor' Attack Lets Hackers Inject Malicious Code via AI Code Editors (finding by
 Pillar Security). *The Hacker News*, 18 Mar
 2025. [https://thehackernews.com/2025/03/new-rules-file-backdoor-attack-lets.html](https://thehackernews.com/2025/03/new-rules-file-backdoor-attack-lets.html),
-retrieved 09.10.2026. Secondary press report; the original report was not read.
+retrieved 09.10.2026. Secondary press report, read in full; it names Pillar Security (Ziv Karliner) and links the
+technical report ([https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents](https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents)),
+which was not read.
 
 ## S47
 
