@@ -95,7 +95,6 @@ the target architecture.
   - The dev server differs from the production build. Header and CSP checks ([BR-13](../backend/backend_requirements.md#br-13)) run against the production build.
   - Routing, test runner and further libraries are chosen during implementation and documented in the PR that
     introduces them (fixed versions, licence check; [FR-21](../frontend/frontend_requirements.md#fr-21)).
-  - The TODO "update guidelines after technologies have been defined" in the frontend documents is resolved.
 
 
 ## ADR-008: Authentication and Session Concept
