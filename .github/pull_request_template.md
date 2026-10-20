@@ -25,19 +25,9 @@ Delete a section only if it is really not applicable and write "n/a" instead. Co
 
 <!-- Changes to the API (openapi/openapi.yaml), configuration, or behaviour that existing users depend on; or "none". -->
 
-# How to verify
-
-<!-- Commands or steps a reviewer can run. Standard set: bash scripts/check-stage1.sh, cd use-back && ./mvnw verify, cd use-web && npm ci && npm test. -->
-
 # Known limitations
 
 <!-- What this PR does not cover or cannot check. Update documentation/architecture/11_risks_technical_debts.md (Known limitations) if a limit is new. -->
-
-# Manual review (not covered by CI)
-
-- [ ] Reviewer looked at the hand-written code: no token, session information or other sensitive value in a URL query ([FR-17](../documentation/frontend/frontend_requirements.md#fr-17)).
-- [ ] Any new evaluation path still limits expression length, result size and evaluation time ([BR-16](../documentation/backend/backend_requirements.md#br-16), [BR-17](../documentation/backend/backend_requirements.md#br-17)).
-- [ ] `use-core` pin changed? If yes: old and new commit, licence headers re-read, tests green, approved by a maintainer who is not the author.
 
 # AI assistance
 
@@ -46,6 +36,13 @@ Delete a section only if it is really not applicable and write "n/a" instead. Co
   - **Tool and model, date:**
   - **Scope (which files or diff):**
   - **Self-check done** (findings / confirmed findings; the result is advisory, the CI checks are authoritative) – see `documentation/ai_guidelines.md`:
+
+# Manual review (not covered by CI)
+
+- [ ] Reviewer looked at the hand-written code: no token, session information or other sensitive value in a URL query ([FR-17](../documentation/frontend/frontend_requirements.md#fr-17)).
+- [ ] Any new evaluation path still limits expression length, result size and evaluation time ([BR-16](../documentation/backend/backend_requirements.md#br-16), [BR-17](../documentation/backend/backend_requirements.md#br-17)).
+- [ ] `use-core` pin changed? If yes: old and new commit, licence headers re-read, tests green, approved by a maintainer who is not the author.
+
 
 # Acceptance checklist for merge
 
