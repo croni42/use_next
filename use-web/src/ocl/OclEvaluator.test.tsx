@@ -1,7 +1,8 @@
 import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import App from './App';
+import App from '../App.tsx';
+import { ERROR_EXAMPLES, VALID_EXAMPLES } from './OclExamples.ts';
 
 // The real api-client runs here; only fetch is replaced, so the generated client, the CSRF handling and the
 // central 401 hook are part of the test.
@@ -170,5 +171,34 @@ describe('OclEvaluator', () => {
     await submit(user, '1 + 1');
     expect(await screen.findByText('2')).toBeTruthy();
     expect(calls).toBe(2);
+  });
+
+  it('fills and evaluates an example with one click', async () => {
+    render(<App />);
+    const user = userEvent.setup();
+    await user.click(
+      await screen.findByRole('button', { name: 'Number of persons' }),
+    );
+    expect((await screen.findByText('14')).tagName).toBe('PRE');
+    expect(
+      (screen.getByLabelText('OCL expression') as HTMLTextAreaElement).value,
+    ).toBe('Person.allInstances()->size()');
+  });
+
+  it('shows the error message when an error example is clicked', async () => {
+    evaluateResponse = () =>
+      json(422, { status: 422, title: 'Rejected', detail: 'Syntax error' });
+    render(<App />);
+    const user = userEvent.setup();
+    await user.click(
+      await screen.findByRole('button', { name: 'Syntax error' }),
+    );
+    expect((await screen.findByRole('alert')).textContent).toBe('Syntax error');
+  });
+
+  it('keeps every example within the length limit of the API spec', () => {
+    for (const example of [...VALID_EXAMPLES, ...ERROR_EXAMPLES]) {
+      expect(example.expression.length).toBeLessThanOrEqual(1000);
+    }
   });
 });

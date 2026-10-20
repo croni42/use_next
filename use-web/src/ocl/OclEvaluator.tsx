@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { errorStatus, evaluateOcl, problemDetail } from './api-client';
+import { errorStatus, evaluateOcl, problemDetail } from '../api-client.ts';
+import { ERROR_EXAMPLES, VALID_EXAMPLES } from './OclExamples.ts';
+import type { OclExample } from './OclExamples.ts';
 
 // Mirrors maxLength of OclEvaluationRequest in openapi.yaml; the backend enforces it, this only helps the user.
 const MAX_EXPRESSION = 1000;
@@ -30,17 +32,51 @@ async function describeFailure(error: unknown): Promise<string> {
   }
 }
 
+function ExampleGroup(props: {
+  heading: string;
+  examples: OclExample[];
+  disabled: boolean;
+  onPick: (expression: string) => void;
+}) {
+  return (
+    <fieldset className="examples">
+      <legend>{props.heading}</legend>
+      {props.examples.map((example) => (
+        <button
+          key={example.title}
+          type="button"
+          className="example"
+          title={example.expression}
+          disabled={props.disabled}
+          onClick={() => props.onPick(example.expression)}
+        >
+          {example.title}
+        </button>
+      ))}
+    </fieldset>
+  );
+}
+
 export default function OclEvaluator() {
   const [expression, setExpression] = useState('');
   const [pending, setPending] = useState(false);
   const [outcome, setOutcome] = useState<Outcome>({ kind: 'none' });
 
-  async function handleSubmit(event: FormEvent) {
+  function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    void run(expression);
+  }
+
+  function runExample(example: string) {
+    setExpression(example);
+    void run(example);
+  }
+
+  async function run(source: string) {
     setPending(true);
     setOutcome({ kind: 'none' });
     try {
-      setOutcome({ kind: 'result', text: await evaluateOcl(expression) });
+      setOutcome({ kind: 'result', text: await evaluateOcl(source) });
     } catch (e) {
       // A 401 is handled centrally (back to the login page); there is nothing to show here.
       setOutcome(
@@ -55,6 +91,18 @@ export default function OclEvaluator() {
 
   return (
     <form onSubmit={handleSubmit}>
+      <ExampleGroup
+        heading="Examples"
+        examples={VALID_EXAMPLES}
+        disabled={pending}
+        onPick={runExample}
+      />
+      <ExampleGroup
+        heading="Error cases"
+        examples={ERROR_EXAMPLES}
+        disabled={pending}
+        onPick={runExample}
+      />
       <label htmlFor="expression">OCL expression</label>
       <textarea
         id="expression"

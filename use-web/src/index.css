@@ -126,3 +126,24 @@ h2 {
   margin: 1rem 0 0;
   font-size: 1.1rem;
 }
+
+.examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.examples legend {
+  padding: 0 0.25rem;
+  font-size: 0.9rem;
+}
+
+button.example {
+  margin-top: 0;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.85rem;
+}

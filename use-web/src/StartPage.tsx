@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import OclEvaluator from './OclEvaluator';
+import OclEvaluator from './ocl/OclEvaluator.tsx';
 
 type Props = {
   username: string;
