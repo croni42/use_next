@@ -22,9 +22,6 @@ includes analysing the current system, identifying architectural and security-re
 structured target concept for a modern implementation.
 
 ## Project Status
-
-[//]: # (TODO update README on status change)
-
 **USE_NEXT** has a first working vertical slice: login with a server-side session and CSRF protection, and one
 business function, evaluating an OCL expression against a fixed server-side model. The architecture documentation
 and the guidelines remain the binding reference for further work.
