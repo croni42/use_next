@@ -11,7 +11,7 @@
 set -euo pipefail
 
 USE_REPO_URL="https://github.com/useocl/use"
-USE_COMMIT="30d480dbcca2f404b1350039516a56f46c1efb1f"
+USE_COMMIT="b0cb1261ef5fe1ffb38ff922cfe93a06e8e9828f"
 USE_CORE_VERSION="7.5.0"
 
 force=false

@@ -31,14 +31,15 @@ See [https://arc42.org](https://arc42.org) for more information.
 ## use-core
 
 `use-back` depends on `use-core` (version 7.5.0), which is not published to Maven Central. It is built from
-the pinned upstream commit `30d480dbcca2f404b1350039516a56f46c1efb1f` of
+the pinned upstream commit `b0cb1261ef5fe1ffb38ff922cfe93a06e8e9828f` of
 [useocl/use](https://github.com/useocl/use) by `scripts/install-use-core.sh` and installed into the local Maven
 repository; CI rebuilds it on every run. The pinned commit lies on the `main` branch of `useocl/use`, and the `use-core`
 source is not part of this repository. Raising the pin goes through the maintainer gate (check `use-core-pin`, see
-[guidelines.md](../guidelines.md)). USE_NEXT is licensed under the GPLv3. The intended licence of the USE project is GPL
-version 3 or later. As long as the upstream headers at the pinned commit are unchanged, they state GPL version 2 or (at
-your option) any later version (source cited in [ADR-009](9_architecture_decisions.md#adr-009-backend-language-framework-and-integration-of-use-core)); `use-core` is used under the GPLv3, which the "or later"
-wording permits.
+[guidelines.md](../guidelines.md)). USE_NEXT is licensed under the GPLv3. At the pinned commit the upstream project is
+licensed under GPL version 3 or later: the `COPYING` file contains the GPL version 3, and the source headers of
+`use-core` state "either version 3 of the License, or (at your option) any later version" (see
+[use_core_licence.md](use_core_licence.md)). `use-core` is therefore used under the GPLv3. Not every source file carries
+a header (at the pinned commit, 547 of 614 Java files in `use-core` do; counted by Claude on 2026-10-20).
 `use-core` is not modified. The licence references for `use-core` (upstream repository, licence text and source headers at
 the pinned commit) are collected in [use_core_licence.md](use_core_licence.md).
 

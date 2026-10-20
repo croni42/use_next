@@ -111,7 +111,7 @@ decisions are documented in [ADR-008](../architecture/9_architecture_decisions.m
   are implemented within the adapter layer.
 - Return values and errors from `use-core` are transformed into backend models and clearly defined error codes
   before being passed to the frontend.
-- Licence: USE_NEXT is GPLv3; the upstream licence headers of `use-core` at the pinned commit state GPL version 2 or
+- Licence: USE_NEXT is GPLv3; the upstream licence headers of `use-core` at the pinned commit state GPL version 3 or
   (at your option) any later version, so `use-core` is used under the GPLv3; see
   [licence_attribution.md](../architecture/licence_attribution.md).
 - Sourcing: `use-core` is not on Maven Central. `scripts/install-use-core.sh` builds it from a pinned upstream commit and
