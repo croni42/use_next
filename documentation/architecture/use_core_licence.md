@@ -20,7 +20,7 @@ where its licence information can be read upstream, at the commit that this proj
   your option) any later version", and the `COPYING` file at that commit contains the text of version 3, so the use
   under the GPLv3 matches the upstream licence. Not every source file carries the header (547 of the 614 Java files in
   `use-core`, counted on 2026-10-20).
-- The pinned commit is the merge of the upstream licence update (useocl/use pull request #142, `license-update`).
+- The pinned commit is the merge of the upstream licence update (useocl/use pull request [#142](https://github.com/useocl/use/pull/142), `license-update`).
 - Changing the pin goes through the maintainer gate (check `use-core-pin`, see [guidelines.md](../guidelines.md)); the
   links above then have to be re-read for the new commit.
 
