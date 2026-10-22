@@ -1,0 +1,49 @@
+{
+  "name": "use-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "lint:api": "spectral lint ../openapi/openapi.yaml --ruleset ../openapi/.spectral.yaml --fail-severity=warn",
+    "format": "prettier --config .prettierrc.json --write . ../openapi ../.github",
+    "format:check": "prettier --config .prettierrc.json --check . ../openapi ../.github",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "generate:api": "openapi-generator-cli generate -c openapi-generator.config.json"
+  },
+  "dependencies": {
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@openapitools/openapi-generator-cli": "2.41.0",
+    "@stoplight/spectral-cli": "6.17.0",
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.7",
+    "@types/node": "24.19.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2",
+    "eslint": "9.39.5",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "jsdom": "30.1.2",
+    "prettier": "3.9.9",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.1",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  },
+  "overrides": {
+    "shell-quote": "1.12.0",
+    "basic-ftp": "6.2.2"
+  }
+}

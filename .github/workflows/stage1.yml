@@ -1,0 +1,218 @@
+name: stage1
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: stage1-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      # use-core is built from the pinned upstream commit on every run (--force), so the cached
+      # Maven repository can never supply a stale or unverified use-core.
+      - run: bash scripts/install-use-core.sh --force
+      - name: Checks
+        run: bash scripts/ci-checks.sh backend
+      - name: Report
+        if: always()
+        run: node scripts/step-report.mjs backend >> "$GITHUB_STEP_SUMMARY"
+      - name: Test report
+        if: always()
+        run: bash scripts/ci-summary.sh tests "Backend tests" use-back/target/surefire-reports/TEST-*.xml >> "$GITHUB_STEP_SUMMARY"
+
+  frontend:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: use-web/package-lock.json
+      - run: npm ci
+        working-directory: use-web
+      - name: Checks
+        run: bash scripts/ci-checks.sh frontend
+      - name: Report
+        if: always()
+        run: node scripts/step-report.mjs frontend >> "$GITHUB_STEP_SUMMARY"
+      - name: Test report
+        if: always()
+        run: bash scripts/ci-summary.sh tests "Frontend tests" use-web/test-results/junit.xml >> "$GITHUB_STEP_SUMMARY"
+
+  drift:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: use-web/package-lock.json
+      - name: Checks
+        run: bash scripts/ci-checks.sh drift
+      - name: Report
+        if: always()
+        run: node scripts/step-report.mjs drift >> "$GITHUB_STEP_SUMMARY"
+
+  openapi-lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: use-web/package-lock.json
+      - run: npm ci
+        working-directory: use-web
+      - name: Checks
+        run: bash scripts/ci-checks.sh openapi-lint
+      - name: Report
+        if: always()
+        run: node scripts/step-report.mjs openapi-lint >> "$GITHUB_STEP_SUMMARY"
+
+  # CI-only tools below: pinned release binaries, verified against the SHA-256 recorded here
+  # (taken from the release's checksum file). They need no token, key or account.
+
+  oasdiff:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Install oasdiff 1.33.0
+        run: |
+          curl -fsSL -o oasdiff.tar.gz https://github.com/oasdiff/oasdiff/releases/download/v1.33.0/oasdiff_1.33.0_linux_amd64.tar.gz
+          echo "43a4e328e2d13ba1552d760aa68d2485c75c5621f309f6ff64ae895188345247  oasdiff.tar.gz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf oasdiff.tar.gz -C "$RUNNER_TEMP/bin" oasdiff
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      - name: Compare against the base
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+          BREAKING_STATE: ${{ runner.temp }}/breaking-state.txt
+          BREAKING_JSON: ${{ runner.temp }}/breaking-changes.json
+        run: |
+          case "$EVENT_NAME" in
+            pull_request) base="origin/$BASE_REF" ;;
+            push)
+              # Push: compare with the previous tip of the branch; a new branch has none.
+              if [ "$BEFORE_SHA" = "0000000000000000000000000000000000000000" ]; then
+                bash scripts/check-breaking.sh --skip "new branch, no previous tip to compare against (the pull request run compares with its base)"
+                exit
+              fi
+              base="$BEFORE_SHA" ;;
+            *) base="origin/main" ;;
+          esac
+          bash scripts/check-breaking.sh "$base"
+      - name: Result
+        if: always()
+        env:
+          JOB_STATUS: ${{ job.status }}
+        run: node scripts/security-report.mjs oasdiff --outcome "$JOB_STATUS" "$RUNNER_TEMP/breaking-state.txt" "$RUNNER_TEMP/breaking-changes.json" >> "$GITHUB_STEP_SUMMARY"
+
+  osv-scanner:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Install OSV-Scanner 2.6.0
+        run: |
+          mkdir -p "$RUNNER_TEMP/bin"
+          curl -fsSL -o "$RUNNER_TEMP/bin/osv-scanner" https://github.com/google/osv-scanner/releases/download/v2.6.0/osv-scanner_linux_amd64
+          echo "ca69b3d3cd08f889a49dc0a383122f71cc528b83803671df5fd874d97485b108  $RUNNER_TEMP/bin/osv-scanner" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/bin/osv-scanner"
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      # --no-resolve: only the dependencies declared in pom.xml are checked; the transitive Maven
+      # resolution cannot run because use-core is not in Maven Central.
+      # The scanner's exit code is the step's result: 0 no findings, 1 findings, 127 general error,
+      # 128 no packages found, 129-255 other errors. Every non-zero code fails the step.
+      - name: Scan
+        id: scan
+        run: osv-scanner scan source --config=osv-scanner.toml --no-resolve --format json --output-file "$RUNNER_TEMP/osv-result.json" -L use-back/pom.xml -L use-web/package-lock.json
+      - name: Scan report
+        if: always()
+        env:
+          SCAN_OUTCOME: ${{ steps.scan.outcome }}
+        run: |
+          {
+            node scripts/security-report.mjs osv --outcome "$SCAN_OUTCOME" "$RUNNER_TEMP/osv-result.json"
+            bash scripts/ci-summary.sh exceptions osv-scanner.toml
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  gitleaks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+      - name: Install gitleaks 8.30.1
+        run: |
+          curl -fsSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tar.gz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/bin"
+          tar -xzf gitleaks.tar.gz -C "$RUNNER_TEMP/bin" gitleaks
+          echo "$RUNNER_TEMP/bin" >> "$GITHUB_PATH"
+      # fetch-depth 0 fetches every branch, so the scan is limited by --log-opts to the history reachable
+      # from the checked-out commit (HEAD); other branches are scanned by their own pipeline.
+      # --redact keeps secret values out of the log and the report file.
+      - name: Scan
+        id: scan
+        run: gitleaks git --redact --no-banner --log-opts=HEAD --report-format json --report-path "$RUNNER_TEMP/gitleaks-report.json" .
+      - name: Result
+        if: always()
+        env:
+          SCAN_OUTCOME: ${{ steps.scan.outcome }}
+        run: node scripts/security-report.mjs gitleaks --outcome "$SCAN_OUTCOME" "$RUNNER_TEMP/gitleaks-report.json" >> "$GITHUB_STEP_SUMMARY"

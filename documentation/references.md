@@ -235,3 +235,58 @@ Community. [https://owasp.org/www-community/Threat_Modeling](https://owasp.org/w
 MDN Web Docs: Content Security Policy (CSP). (n.d.). MDN Web Docs
 [https://developer.mozilla.org/de/docs/Web/HTTP/Guides/CSP](https://developer.mozilla.org/de/docs/Web/HTTP/Guides/CSP)
 , retrieved 25.05.2026.
+
+## S41
+
+Stack Overflow: *Stack Overflow Developer Survey 2025* (
+2025).
+[https://survey.stackoverflow.co/2025/technology#1-web-frameworks-and-technologies](https://survey.stackoverflow.co/2025/technology#1-web-frameworks-and-technologies),
+retrieved 07.10.2026
+
+[//]: # (TODO ...human, manually... verifiy new references! Not just abstract and summaries)
+
+## S42
+
+Pearce, H., Ahmad, B., Tan, B., Dolan-Gavitt, B., Karri, R.: Asleep at the Keyboard? Assessing the Security of GitHub
+Copilot's Code Contributions. *arXiv preprint* arXiv:2108.09293 (v3, Dec
+2021). [https://arxiv.org/abs/2108.09293](https://arxiv.org/abs/2108.09293), retrieved 09.10.2026
+
+## S43
+
+Perry, N., Srivastava, M., Kumar, D., Boneh, D.: Do Users Write More Insecure Code with AI Assistants? In: *Proceedings
+of the 2023 ACM SIGSAC Conference on Computer and Communications Security (CCS '23)*. arXiv:2211.03622 (
+2023). [https://arxiv.org/abs/2211.03622](https://arxiv.org/abs/2211.03622), retrieved 09.10.2026
+
+## S44
+
+Spracklen, J., Wijewickrama, R., Sakib, A.H.M.N., Maiti, A., Viswanath, B., Jadliwala, M.: We Have a Package for You! A
+Comprehensive Analysis of Package Hallucinations by Code Generating LLMs. In: *34th USENIX Security Symposium*
+(2025). arXiv:2406.10279 (v3). [https://arxiv.org/abs/2406.10279](https://arxiv.org/abs/2406.10279), retrieved
+09.10.2026
+
+## S46
+
+Lakshmanan, R.: New 'Rules File Backdoor' Attack Lets Hackers Inject Malicious Code via AI Code Editors (finding by
+Pillar Security). *The Hacker News*, 18 Mar
+2025. [https://thehackernews.com/2025/03/new-rules-file-backdoor-attack-lets.html](https://thehackernews.com/2025/03/new-rules-file-backdoor-attack-lets.html),
+retrieved 09.10.2026. Secondary press report, read in full; it names Pillar Security (Ziv Karliner) and links the
+technical report ([https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents](https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents)),
+which was not read.
+
+## S47
+
+OWASP GenAI Security Project: OWASP Top 10 for LLM Applications
+2025. [https://genai.owasp.org/llm-top-10/](https://genai.owasp.org/llm-top-10/), retrieved 09.10.2026
+
+## S48
+
+OWASP Foundation: LLM Prompt Injection Prevention Cheat Sheet. *OWASP Cheat Sheet Series*
+(n.d.). [https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html](https://cheatsheetseries.owasp.org/cheatsheets/LLM_Prompt_Injection_Prevention_Cheat_Sheet.html),
+retrieved 09.10.2026
+
+## S51
+
+National Institute of Standards and Technology (NIST): Secure Software Development Practices for Generative AI and
+Dual-Use Foundation Models: An SSDF Community Profile. *NIST Special Publication 800-218A* (Jul
+2024). [https://csrc.nist.gov/pubs/sp/800/218/a/final](https://csrc.nist.gov/pubs/sp/800/218/a/final), retrieved
+09.10.2026

@@ -1,7 +1,5 @@
 # Overview
 
-[//]: # (TODO update overview after technologies have been defined)
-
 ## Guidelines
 > Guidelines can be found here: [Frontend guidelines](frontend_guidelines.md)
 
@@ -11,7 +9,7 @@
 ## Target Architecture
 
 > Detailed architecture documentation found
-> here: [Architecture summary arc42 (0_architecture.md)](../architecture/0_architecture_overview.md)
+> here: [Architecture summary arc42 (0_architecture_overview.md)](../architecture/0_architecture_overview.md)
 
 The target architecture of **USE_NEXT** follows a clear separation between frontend, backend, and the reused
 `use-core`. The frontend is responsible for presentation, user interaction, and client-side state handling, while the
@@ -22,10 +20,12 @@ improve maintainability, testability, and traceability. UI components must not c
 endpoints or core functions, but instead use clearly defined frontend services that encapsulate API access and related
 technical concerns.
 
+The frontend is implemented with React and TypeScript (strict mode) and built with Vite ([ADR-007](../architecture/9_architecture_decisions.md#adr-007-frontend-framework)).
+
 Communication between frontend and backend is based on an internal API. This API is described through an OpenAPI
-specification, which serves as the central contract between both parts of the system and provides the basis for
-generated client code where appropriate.
+specification, which serves as the central contract between both parts of the system. The TypeScript client is
+generated from it (`typescript-fetch`), committed, and checked for drift in CI ([ADR-006](../architecture/9_architecture_decisions.md#adr-006-openapi-based-code-generation-for-api-stability), [ADR-010](../architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)).
 
 Security is treated as a cross-cutting concern throughout the architecture. Relevant measures include controlled
-handling of untrusted data, standardised error processing, restricted communication paths, support for secure session
-and authentication handling where required, and a clear separation of responsibilities between frontend and backend.
+handling of untrusted data, standardised error processing, restricted communication paths, cookie-based session
+handling with CSRF header ([ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept)), and a clear separation of responsibilities between frontend and backend.

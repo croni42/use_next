@@ -22,12 +22,32 @@ includes analysing the current system, identifying architectural and security-re
 structured target concept for a modern implementation.
 
 ## Project Status
+**USE_NEXT** has a first working vertical slice: login with a server-side session and CSRF protection, and one
+business function, evaluating an OCL expression against a fixed server-side model. The architecture documentation
+and the guidelines remain the binding reference for further work.
 
-[//]: # (TODO update README on status change)
+## Modules
 
-**USE_NEXT** is currently in an analysis and design phase. At this stage, the repository primarily contains conceptual
-work, architectural documentation, and project guidelines rather than a finished implementation. Further technical
-decisions and implementation steps will be based on these documented foundations.
+| Module                         | Content                                                   |
+|--------------------------------|-----------------------------------------------------------|
+| [`use-web`](use-web/README.md)   | React + TypeScript frontend                               |
+| [`use-back`](use-back/README.md) | Spring Boot backend, integrates `use-core` via an adapter |
+| [`openapi`](openapi/openapi.yaml) | API contract shared by both modules                       |
+| [`scripts`](scripts)           | Local and CI checks                                       |
+
+## Technology Overview
+
+| Area             | Decision                                                                         |
+|------------------|----------------------------------------------------------------------------------|
+| Frontend         | React, TypeScript (strict), Vite                                                 |
+| Backend          | Java 21, Spring Boot 4.1.x (Spring MVC), Maven                                   |
+| Core integration | `use-core` in-process through a dedicated adapter package                        |
+| API contract     | OpenAPI (spec-first), OpenAPI Generator for TypeScript client and Spring server interfaces |
+| Authentication   | Server-side session with `HttpOnly`, `Secure`, `SameSite=Strict` cookie and CSRF token |
+| CI               | GitHub Actions, staged checks that can be run locally                            |
+
+Required toolchain: JDK 21 and Node.js LTS (the project is built and tested with Node.js 24; the exact requirement is `engines` in `use-web/package.json`). Details and rationale:
+[ADRs](documentation/architecture/9_architecture_decisions.md).
 
 # Documentation
 
@@ -46,7 +66,7 @@ changes or adding new components.
 The architecture documentation defines the technical foundation and target architecture of USE_NEXT. It captures the
 main architectural goals, decisions, and building blocks and serves as the basis for the further development of the
 system.
-> - [Architecture summary arc42 (0_architecture.md)](documentation/architecture/0_architecture_overview.md)
+> - [Architecture summary arc42 (0_architecture_overview.md)](documentation/architecture/0_architecture_overview.md)
 
 ### Frontend
 

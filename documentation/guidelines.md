@@ -6,6 +6,9 @@ and only referenced here.
 
 > Detailed guidelines for specific the frontend and backend are described in
 > separate: [frontend guidelines](frontend/frontend_guidelines.md) / [backend guidelines](backend/backend_guidelines.md).
+>
+> Rules for AI-assisted development and the self-check with an AI tool are described in the
+> [AI guidelines](ai_guidelines.md).
 
 ## 1. Architecture and Documentation Reference
 
@@ -19,65 +22,138 @@ and only referenced here.
   in: [architecture_decisions](architecture/9_architecture_decisions.md).
 - Known risks and technical debt are described in: [risks_technical_debts](architecture/11_risks_technical_debts.md).
 
-## 2. Coding and Structure Conventions
+## 2. Technology Baseline
+
+The technology stack is fixed by ADRs. Deviations require a new or amended ADR (see section 3).
+
+| Area                | Decision                                                                                  | ADR                                                                          |
+|---------------------|-------------------------------------------------------------------------------------------|------------------------------------------------------------------------------|
+| Frontend            | React and TypeScript (strict mode), Vite as build tool                                    | [ADR-007](architecture/9_architecture_decisions.md#adr-007-frontend-framework) |
+| Backend             | Java 21, Spring Boot 4.1.x (Spring MVC), Maven (Maven Wrapper)                            | [ADR-009](architecture/9_architecture_decisions.md#adr-009-backend-language-framework-and-integration-of-use-core)                                                                      |
+| Core integration    | `use-core` in-process through one adapter package; only this package imports `org.tzi.use.*` | [ADR-009](architecture/9_architecture_decisions.md#adr-009-backend-language-framework-and-integration-of-use-core), [ADR-003](architecture/9_architecture_decisions.md#adr-003-backend-as-wrapper-around-use-core)                                                          |
+| API contract        | One OpenAPI file, spec-first; OpenAPI Generator for server interfaces and TypeScript client | [ADR-006](architecture/9_architecture_decisions.md#adr-006-openapi-based-code-generation-for-api-stability), [ADR-010](architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)                                                           |
+| Authentication      | Server-side session with session cookie, CSRF token for state-changing requests           | [ADR-008](architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept)                                                                      |
+| CI                  | GitHub Actions; every check is runnable locally with one command                          | [ADR-011](architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)                                                                      |
+
+Required local toolchain: JDK 21, Node.js LTS (built and tested with Node.js 24, see `use-web/package.json`), Maven Wrapper and npm. No Docker, accounts or API keys are needed for
+the mandatory checks.
+
+## 3. Coding and Structure Conventions
 
 - Programming language and framework-specific conventions (e.g., linting, formatting, naming schemas) follow respective
   community standards.
 - The structuring of components and modules follows the principles described
   in [constraints](architecture/2_constraints.md) (modularisation, component-oriented, well-defined interfaces).
 - For new modules/components, it must be checked into which existing building block they logically belong.
+- Contract changes always start in the OpenAPI specification. Controllers implement the generated interfaces; the
+  frontend uses the generated client ([ADR-006](architecture/9_architecture_decisions.md#adr-006-openapi-based-code-generation-for-api-stability), [ADR-010](architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)).
+- Routing and further libraries are chosen during implementation and documented in the PR that introduces them (fixed
+  version, licence check). The test runner (currently Vitest) can be replaced without an ADR as long as the CI test job
+  and the test coverage of the requirements are kept.
 
 > Changes to the basic structure (e.g., new containers or layers) require an update
 > of [building_block](architecture/5_building_block.md) and possibly new ADRs
 > in [architecture_decisions](architecture/9_architecture_decisions.md).
 
-## 3. Handling Architecture Decisions (ADRs)
+## 4. Handling Architecture Decisions (ADRs)
 
 - Central decisions are maintained as Architecture Decision Records
   in [architecture_decisions](architecture/9_architecture_decisions.md).
 - New ADRs must be created when:
     - an existing decision is significantly changed or revoked, or
     - a new central technology, pattern, or security-relevant mechanism is introduced.
+- Examples that require an ADR update: replacing the OpenAPI generator, switching to token-based authentication,
+  introducing a state-management library as a central pattern, changing the Spring Boot line.
 
 > Every implementation that deliberately deviates from an ADR must:
 >  - describe the deviation in the PR and
 >  - include a proposal for how the ADR documentation should be adapted.
 
-## 4. Quality Assurance, PRs, and Pipelines
+## 5. Quality Assurance, PRs, and Pipelines
 
-[//]: # (TODO create Piplines and PR rules)
+CI runs on GitHub Actions ([ADR-011](architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)). Workflows only call commands that can be executed locally. Branch protection
+requires the stage 1 checks before merge.
 
-- CI/build pipelines shall:
-    - execute linters/formatters appropriate to the chosen technologies.
-    - perform dependency and security checks (see dependency and risk considerations
-      in [solution_strategy](architecture/4_solution_strategy.md)
-      and [risks_technical_debts](architecture/11_risks_technical_debts.md)).
-    - ensure consistency of OpenAPI specification and generated clients (see ADR-006
-      in [architecture_decisions](architecture/9_architecture_decisions.md)).
+**Stage 1 (mandatory):** the workflow `.github/workflows/stage1.yml` runs seven jobs on pull requests (drafts included),
+on pushes to `main` and on manual dispatch. A feature branch gets its checks by opening a (draft) pull request or by
+starting the workflow by hand; plain pushes to other branches do not start it:
+
+| Job            | Checks                                                                                                              |
+|----------------|---------------------------------------------------------------------------------------------------------------------|
+| `backend`      | Builds `use-core` from the pinned commit, then `./mvnw verify`: all backend tests, including security header ([BR-13](backend/backend_requirements.md#br-13)), session and CSRF ([BR-09](backend/backend_requirements.md#br-09), [BR-11](backend/backend_requirements.md#br-11)) integration tests and the architecture test for the adapter boundary ([BR-02](backend/backend_requirements.md#br-02)). |
+| `frontend`     | `npm ci`, unit tests, ESLint with TypeScript and React security rules (unsafe DOM sinks are flagged), Prettier check, production build, the CSP build check (`scripts/check-csp-build.mjs`) and the context file check (`scripts/check-context-files.mjs`, with its tests): it fails when `AGENTS.md` contains invisible or bidirectional Unicode characters. The tests of the report renderer for the three scanner jobs (`scripts/security-report.test.mjs`) run here too. |
+| `drift`        | `scripts/check-drift.sh`: the generated TypeScript client is regenerated and the job fails on any difference to the committed files. |
+| `openapi-lint` | Spectral with `openapi/.spectral.yaml`, including the rule that `apiKey` is only allowed in cookies, never in query parameters. |
+| `oasdiff`      | Breaking API changes against the previous tip of `main` (push), the base branch (pull request) or `origin/main` (manual run); a breaking change (oasdiff level error) fails the job. The summary lists the changes with their rule IDs and says explicitly **NOT CHECKED** (with a warning annotation) when there was nothing to compare with, for example when the base has no API spec. |
+| `osv-scanner`  | Known vulnerabilities in `use-back/pom.xml` (directly declared packages only, `--no-resolve`) and `use-web/package-lock.json`. Every non-zero exit code of the scanner fails the job (1 findings, 128 no packages found, other codes errors). The summary lists package, version, advisory, severity and fixed version. |
+| `gitleaks`     | Secrets in the git history reachable from the checked-out commit; secrets on other branches are not seen until those branches run their own pipeline. A finding fails the job until it is gone from the history of the branch (a revert commit does not help). The summary lists rule, file, line, short commit and date, never the value. |
+
+All jobs except `oasdiff`, `osv-scanner` and `gitleaks` are covered by `bash scripts/check-stage1.sh`, which runs the
+checks in sequence and stops at the first failure. Findings of the three scanner jobs appear in the job summary of the
+workflow run.
+
+Every job writes a job summary that starts with a verdict line (PASSED, FAILED or NOT CHECKED) and a line saying what
+the job covers and does not cover. `backend`, `frontend`, `drift` and `openapi-lint` run all of their checks even when one
+fails (`scripts/ci-checks.sh`) and fail at the end; the summary lists every check with result and duration, shows the
+first lines of the output of a failed check, and shows a check that did not run as "not run", never as passed.
+Locally, `scripts/check-stage1.sh` still stops at the first failure.
+
+A green pipeline does not mean that every rule was checked. Two cases are not covered by any job: a CSRF token or other
+sensitive value that hand-written code places in a URL query ([FR-17](frontend/frontend_requirements.md#fr-17)), and a missing or too generous limit on expression
+length, result size or evaluation time ([BR-16](backend/backend_requirements.md#br-16), [BR-17](backend/backend_requirements.md#br-17)). The manual review covers them, using the checklist "Manual review
+(not covered by CI)" in the [pull request template](../.github/pull_request_template.md).
+
+**The `use-core` pin:** `use-core` is not part of this repository. It is built from the upstream commit pinned in
+`scripts/install-use-core.sh` (`USE_REPO_URL`, `USE_COMMIT`, `USE_CORE_VERSION`); the pin never follows a moving branch,
+so builds are reproducible and the licence header statement in
+[licence_attribution](architecture/licence_attribution.md) refers to a known commit. The pin is raised only
+deliberately. The pull request names the old and the new commit and confirms that the licence headers were re-read and
+the tests are green. The workflow `.github/workflows/use-core-pin.yml` (check `use-core-pin`, pull requests only) fails
+when a pull request changes the pin, until one user who is not the author and has the repository role maintain or admin
+has approved the current head commit; a later push, a dismissal or a "request changes" from that user cancels the
+approval. If the check cannot read the role of an approver it fails. If the base branch has no install script, the check
+cannot compare and says so with a warning ("NOT CHECKED"). Limits: a pull request can weaken the check by editing the
+workflow or the script, so Branch Protection with code owners for `.github/` and `scripts/install-use-core.sh` must be
+set up by an admin of the target repository; and the check says nothing about the content of the new upstream commit.
+
+AI-assisted changes follow the [AI guidelines](ai_guidelines.md) in addition to these rules. They pass the same checks
+and the same review as all other changes.
+
+**Stage 2 light (only if capacity remains):** licence check, contract tests against the running backend (e.g.
+Schemathesis), OWASP Dependency-Check.
+
+**Pipeline rules:**
+
+- GitHub Actions are pinned to a commit SHA, workflow permissions are minimal, tool versions are fixed and reviewed like
+  any other dependency. The CI-only tools oasdiff, OSV-Scanner and gitleaks are downloaded as release binaries of a fixed
+  version and verified against a recorded SHA-256 (see [solution_strategy](architecture/4_solution_strategy.md)).
+- Replacing a single tool is a pipeline change, not an architecture change.
 - Every Pull Request references the relevant architecture and/or risk documents if decisions are affected:  
   [solution_strategy](architecture/4_solution_strategy.md), [architecture_decisions](architecture/9_architecture_decisions.md), [risks_technical_debts](architecture/11_risks_technical_debts.md).
-- PR template includes at least:
+- The PR template includes at least:
     - Reference to affected ADRs (IDs from [architecture_decisions](architecture/9_architecture_decisions.md)), if
       applicable.
     - Confirmation that no security-relevant rules from the Solution Strategy (Chapter Security Decisions
       in [solution_strategy](architecture/4_solution_strategy.md)) are violated – or description of the justified
       exception.
 
-## 5. Security-by-Design
+## 6. Security-by-Design
 
 - Security is treated as a cross-cutting concern. Fundamental principles are established
   in [solution_strategy](architecture/4_solution_strategy.md) (Security Decisions)
-  and [architecture_decisions](architecture/9_architecture_decisions.md) (especially ADR-005, ADR-008).
+  and [architecture_decisions](architecture/9_architecture_decisions.md) (especially [ADR-005](architecture/9_architecture_decisions.md#adr-005-security-through-central-rules-instead-of-distributed-individual-measures), [ADR-008](architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept), [ADR-011](architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)).
 - Both frontend and backend implementations consider:
     - secure processing and rendering of external data,
-    - controlled communication between frontend and backend (OpenAPI-based),
-    - conservative handling of sessions/tokens and error messages,
-    - disciplined use of external dependencies.
+    - controlled communication between frontend and backend (OpenAPI-based, generated client),
+    - the session model of [ADR-008](architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept): `HttpOnly`, `Secure`, `SameSite=Strict` session cookie, 30 minutes inactivity
+      timeout, CSRF token for state-changing requests, no session data in URLs,
+    - conservative handling of error messages,
+    - disciplined use of external dependencies (fixed versions, lockfiles, OSV-Scanner, gitleaks).
 
 > A detailed view on the prevention of those risk is found here:
 > [security_risks_and_prevention.md](security/security_risks_and_prevention.md)
 
-## 6. Maintenance and Evolution of Guidelines
+## 7. Maintenance and Evolution of Guidelines
 
 - These project-wide guidelines are a living document and are adapted when relevant architecture, technology, or
   security changes occur.

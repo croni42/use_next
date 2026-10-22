@@ -13,6 +13,10 @@ Untrusted data in the frontend should exclusively render using secure mechanisms
 should be avoided. Where HTML content is required for functional reasons, it should be centrally sanitised before
 rendering. The implementation follows OWASP recommendations on output encoding, safe sinks, and HTML sanitation.
 Where supported, Trusted Types provide an additional browser-level enforcement layer against unsafe DOM sink assignments.
+
+With React ([ADR-007](../architecture/9_architecture_decisions.md#adr-007-frontend-framework)), values rendered through JSX are escaped by default. `dangerouslySetInnerHTML` is the single
+explicit unsafe sink. It is banned or centralised in one sanitisation component by ESLint rules, which are part of the
+mandatory CI checks ([ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)).
 > [S7](../references.md#s7), [S9](../references.md#s9), [S10](../references.md#s10), [S11](../references.md#s11)
 
 ## Configuration and CSP
@@ -28,6 +32,29 @@ Policy acts as a complementary defense-in-depth measure. It limits the impact of
 replace secure coding. Allowed origins for backend communication are explicitly defined, and external scripts kept
 to the necessary minimum.
 
+The backend sets the security headers (CSP, clickjacking protection, HSTS). Two Spring Security filter chains share one
+header method: `/api/**` and everything else, i.e. the static files of the `use-web` production build, which `use-back`
+serves same-origin (profile `with-frontend`). Both carry Referrer-Policy `no-referrer`, a fixed Permissions-Policy,
+`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Cross-Origin-Opener-Policy` and
+`Cross-Origin-Resource-Policy` `same-origin`. HSTS is written only for requests that Tomcat treats as HTTPS.
+Only the Content-Security-Policy differs:
+
+- API responses: `default-src 'none'; frame-ancestors 'none'`.
+- Frontend responses: `default-src 'none'`, with `'self'` for script, style, image, font, connect and manifest sources,
+  `base-uri 'none'`, `form-action 'self'`, `object-src 'none'`, `frame-ancestors 'none'`, no `'unsafe-inline'`, no `'unsafe-eval'`, no
+  `data:`, and `require-trusted-types-for 'script'; trusted-types 'none'` (Trusted Types is required and no policy may
+  be created).
+
+The frontend policy applies only to the production build; the Vite dev server does not send it. Integration tests
+against a real Tomcat verify the header values (`SessionCsrfIntegrationTest` for the API, `FrontendHeadersIntegrationTest`
+for the frontend), and `scripts/check-csp-build.mjs` checks the build output for content the policy would block ([BR-13](../backend/backend_requirements.md#br-13),
+[FR-14](../frontend/frontend_requirements.md#fr-14), [ADR-007](../architecture/9_architecture_decisions.md#adr-007-frontend-framework), [ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)). In development the dev-server proxy gives frontend and backend one origin; otherwise CORS is
+configured explicitly with credentials and a fixed allowed origin, never a wildcard ([ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept)).
+
+Known limits: the frontend policy was checked in a Chromium-based browser only; other browsers ignore
+`require-trusted-types-for`. HSTS was tested with a forwarded-HTTPS request, not over real TLS; behind a TLS-terminating
+proxy the deployment must set `server.forward-headers-strategy`, otherwise no HSTS header is sent.
+
 > [S3](../references.md#s3), [S40](/documentation/references.md#s40)
 
 ## Authentication, Session and Token Handling
@@ -42,6 +69,21 @@ defined timeout and re-authentication policies. When cookie-based authentication
 must be protected against Cross-Site Request Forgery (CSRF) through SameSite policies, token patterns, or
 Origin/Referer validation.
 
+[ADR-008](../architecture/9_architecture_decisions.md#adr-008-authentication-and-session-concept) defines the concrete model:
+
+- Server-side session identified by a session cookie with `HttpOnly`, `Secure` and `SameSite=Strict`. The session ID is
+  regenerated on login. It is never handled by frontend code and never transmitted via URLs.
+- Sessions expire after 30 minutes of inactivity (configurable). Logout invalidates the session on the server.
+- State-changing requests are protected by CSRF tokens (Spring Security). The backend provides the token, the
+  communication layer of the frontend sends it in a request header.
+- The OpenAPI specification declares an `apiKey` security scheme located in a cookie and the CSRF header. An `apiKey`
+  in query parameters is not allowed; Spectral enforces this in CI.
+- Sessions are held in server memory (local operation) and end on backend restart. User management is minimal.
+- Residual risk: an `HttpOnly` cookie cannot be read by an XSS, but an XSS during an active session can still send
+  requests within that session. This is reduced by safe rendering, a restrictive CSP and Trusted Types.
+- Tests cover 401 for unauthenticated access, rejection of expired or invalidated sessions, rejection of requests without
+  a valid CSRF token, cookie attributes and session ID change on login.
+
 > [S20](../references.md#s20), [S34](../references.md#s34), [S35](../references.md#s35) 
 
 ## Supply Chain
@@ -52,6 +94,13 @@ client-side code and thereby impair application security.
 
 A deliberate dependency strategy should therefore be adopted: only necessary libraries, fixed
 versions instead of uncontrolled "latest" references, regular updates and automated checks for known vulnerabilities.
+
+Concretely ([ADR-011](../architecture/9_architecture_decisions.md#adr-011-ci-platform-and-check-stage-model)): lockfiles (`package-lock.json`) and fixed versions in `pom.xml`, OSV-Scanner for both, gitleaks
+for committed secrets, oasdiff for breaking API changes and Spectral for the OpenAPI specification. GitHub Actions are
+pinned to a commit SHA and run with minimal workflow permissions. The OpenAPI Generator version is pinned exactly and
+updated only through deliberate PRs ([ADR-010](../architecture/9_architecture_decisions.md#adr-010-openapi-code-generation--scope-and-generator)). Generated code is excluded from handwritten-code lint rules where
+appropriate, but not from dependency and secret scans. Optional stage 2 checks (licence check, Schemathesis, OWASP
+Dependency-Check) are added if capacity remains.
 
 > [S4](../references.md#s4), [S12](../references.md#s12), [S32](../references.md#s32), [S33](../references.md#s33),
   [S36](../references.md#s36)
