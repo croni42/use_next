@@ -55,8 +55,9 @@ the system. It briefly describes the responsibilities of the frontend, backend, 
 
 In [9_architecture_decisions.md](9_architecture_decisions.md), the key architectural decisions are documented as ADRs.
 These include, in particular, the reuse of `use-core`, the separation of frontend and backend, the backend as
-a wrapper around the `use-core`, the modular architecture, the planned use of OpenAPI, and the authentication
-and session concept.
+a wrapper around the `use-core`, the modular architecture, OpenAPI-based code generation for client and server, and
+the technology decisions: frontend framework (React, TypeScript, Vite), the cookie-based session concept, the backend
+stack (Java 21, Spring Boot, in-process integration of `use-core`) and the staged CI model.
 
 ## 11 Risks & Technical Debts
 

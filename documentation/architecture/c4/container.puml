@@ -1,0 +1,21 @@
+@startuml container
+!include <C4/C4_Container>
+
+LAYOUT_WITH_LEGEND()
+title Container diagram for USE_NEXT
+
+Person(modeler, "Modeler / Analyst", "Specifies, analyses and validates UML/OCL models")
+
+System_Boundary(useNext, "USE_NEXT") {
+    Container(useWeb, "use-web", "React, TypeScript, Vite", "Web UI for model visualization, interaction and analysis control (ADR-007)")
+    Container(useBack, "use-back", "Java 21, Spring Boot 4.1.x", "REST API, server-side sessions, CSRF protection, validation, error mapping. Adapter package wraps use-core (ADR-008, ADR-009)")
+}
+
+System_Ext(useCore, "use-core", "Existing USE domain core: model processing, OCL evaluation, validation (ADR-001)")
+System_Ext(usePlugins, "USE Plugin(s)", "Optional extensions providing additional USE functionality")
+
+Rel(modeler, useWeb, "Uses", "Browser, HTTPS")
+Rel_R(useWeb, useBack, "Makes API calls to", "JSON/HTTPS, OpenAPI-generated client (ADR-006, ADR-010)")
+Rel_D(useBack, useCore, "Calls", "in-process Java, adapter package")
+Rel_U(usePlugins, useCore, "Registers with", "PluginRuntime")
+@enduml
