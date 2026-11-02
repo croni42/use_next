@@ -1,0 +1,28 @@
+model Company
+
+enum Role { Developer, Tester, Manager }
+
+class Person
+attributes
+  name : String
+  age : Integer
+  salary : Real
+  role : Role
+operations
+  isAdult() : Boolean = self.age >= 18
+end
+
+class Company
+attributes
+  name : String
+end
+
+association Employment between
+  Company [1] role employer
+  Person [1..*] role employees
+end
+
+constraints
+context Person
+  inv adultsOnly: self.age >= 18
+  inv positiveSalary: self.salary > 0
