@@ -126,6 +126,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/Problem'
 components:
+  parameters:
+    # DEMO-SEED spec-lint
+    UnusedPage:
+      name: page
+      in: query
+      schema:
+        type: integer
   securitySchemes:
     sessionCookie:
       type: apiKey
