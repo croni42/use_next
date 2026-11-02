@@ -178,6 +178,9 @@ components:
       properties:
         username:
           type: string
+        # DEMO-SEED drift
+        displayName:
+          type: string
     OclEvaluationRequest:
       type: object
       required: [expression]
