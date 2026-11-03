@@ -1,4 +1,4 @@
-# AGENTS.md
+# A️GENTS.md
 
 This file provides guidance to AI coding agents (Codex, Claude Code, etc.) when working with code in this repository.
 
