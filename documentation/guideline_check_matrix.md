@@ -27,7 +27,7 @@ it) · *open* (no check yet).
 
 ## Summary
 
-56 rules: A 19 · A/H 10 · H 19 · M 8. Status: tested 5 · implemented 11 · partly 29 · rule only 4 · open 7.
+56 rules: A 19 · A/H 10 · H 19 · M 8. Status: tested 5 · implemented 13 · partly 27 · rule only 4 · open 7.
 
 Branch Protection with the stage 1 jobs as required checks is a precondition for every *implemented* row: without it a
 red job is visible but does not block a merge.
@@ -57,7 +57,7 @@ red job is visible but does not block a merge.
 | [FR-19](frontend/frontend_requirements.md#fr-19) | Client validation is only supportive | M | review | open | |
 | [FR-20](frontend/frontend_requirements.md#fr-20) | Controlled, non-revealing error display | H | review | open | no automated rule |
 | [FR-21](frontend/frontend_requirements.md#fr-21) | Controlled dependency set | A | `npm ci` with lockfile, fixed versions, `osv-scanner` | partly | licence check manual |
-| [FR-22](frontend/frontend_requirements.md#fr-22) | Frontend in automated checks | A | jobs `frontend`, `osv-scanner` | partly | Branch Protection not yet configured in the target repository |
+| [FR-22](frontend/frontend_requirements.md#fr-22) | Frontend in automated checks | A | jobs `frontend`, `osv-scanner` | implemented | blocking of a merge by a red required check was tested in a fork, not yet on a pull request in the target repository |
 | [FR-23](frontend/frontend_requirements.md#fr-23) | Extensibility | M | ADR and architecture review | open | |
 
 ## Backend requirements
@@ -77,8 +77,8 @@ red job is visible but does not block a merge.
 | [BR-11](backend/backend_requirements.md#br-11) | Secure session handling | H | `SessionCsrfIntegrationTest` (cookie flags, rotation on login, logout, 30-minute timeout setting) | partly | timeout not tested end to end |
 | [BR-12](backend/backend_requirements.md#br-12) | Structured, minimal errors | A/H | Spectral `usenext-error-problem-schema`; `MessageSanitizerTest`, endpoint tests | partly | container errors via `/error` use the Spring Boot default body |
 | [BR-13](backend/backend_requirements.md#br-13) | Restrictive security headers | A | `SessionCsrfIntegrationTest`, `FrontendHeadersIntegrationTest` | implemented | HSTS behind a TLS proxy and browsers other than Chromium not verified |
-| [BR-14](backend/backend_requirements.md#br-14) | Backend in automated checks | A | seven jobs in `stage1.yml` | partly | Branch Protection not yet configured in the target repository |
-| [BR-15](backend/backend_requirements.md#br-15) | Controlled dependency policy | A/H | Actions pinned by SHA, binaries by SHA-256, `osv-scanner`, `gitleaks`, `use-core-pin` | partly | Maven only direct dependencies (`--no-resolve`); licence check manual |
+| [BR-14](backend/backend_requirements.md#br-14) | Backend in automated checks | A | seven jobs in `stage1.yml` | implemented | as FR-22; no seeded violation of the evaluation targeted the `backend` job; `oasdiff` reports "NOT CHECKED" while the base branch has no spec |
+| [BR-15](backend/backend_requirements.md#br-15) | Controlled dependency policy | A/H | Actions pinned by SHA, binaries by SHA-256, `osv-scanner`, `gitleaks`, `use-core-pin`, code owners for `.github/` and the install script (`.github/CODEOWNERS`) | partly | Maven only direct dependencies (`--no-resolve`); licence check manual |
 | [BR-16](backend/backend_requirements.md#br-16) | Predictable timeout and failure behaviour | H | `OclEndpointIntegrationTest` (timeout, 503 with `Retry-After`) | partly | **known gap:** a missing or too generous limit is not found; manual review item |
 | [BR-17](backend/backend_requirements.md#br-17) | Bounded resources per request | H | tests for expression length, result size, time and slots | partly | **known gap** as BR-16; request body size not limited; memory per request not boundable; no rate limiting |
 
@@ -86,7 +86,7 @@ red job is visible but does not block a merge.
 
 | ID | Rule (short) | Type | Check | Status | Gap / note |
 |---|---|---|---|---|---|
-| [AI-01](ai_guidelines.md#ai-01) | Same checks for AI-assisted changes | A/H | stage 1 jobs apply regardless of the author | partly | depends on Branch Protection |
+| [AI-01](ai_guidelines.md#ai-01) | Same checks for AI-assisted changes | A/H | stage 1 jobs apply regardless of the author | partly | human review part manual |
 | [AI-02](ai_guidelines.md#ai-02) | AI-suggested dependencies checked | A/H | as FR-21/BR-15 | partly | existence and licence checked manually |
 | [AI-03](ai_guidelines.md#ai-03) | AI assistance marked in the PR | H | section "AI assistance" in the PR template | partly | filled in manually |
 | [AI-04](ai_guidelines.md#ai-04) | No secrets in prompts | M | rule only; `gitleaks` sees committed secrets, not prompts | rule only | |

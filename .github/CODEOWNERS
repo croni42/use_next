@@ -1,0 +1,5 @@
+# Changes to CI workflows and the use-core install script need a code owner review
+# (documentation/guidelines.md, section 5). Enforced only with "Require review from
+# Code Owners" in the branch protection of main.
+/.github/                     @croni42 @h-man2
+/scripts/install-use-core.sh  @croni42 @h-man2
