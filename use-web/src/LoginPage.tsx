@@ -59,7 +59,7 @@ export default function LoginPage({ onLogin }: Props) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <div role="alert" aria-live="assertive" className="error">
+        <div dangerouslySetInnerHTML={"<div>test</div>"} role="alert" aria-live="assertive" className="error">
           {error}
         </div>
         <button type="submit" disabled={pending}>
